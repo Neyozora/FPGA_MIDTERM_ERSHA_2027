@@ -1,0 +1,24 @@
+-- Conv2 INT32 biases, addr = oc
+DEPTH = 16;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
+BEGIN
+    0 : 000001B9;
+    1 : 000001CA;
+    2 : FFFFFFD3;
+    3 : 000000AE;
+    4 : 00000050;
+    5 : FFFFFF59;
+    6 : 000000EC;
+    7 : 00000039;
+    8 : FFFFFF9E;
+    9 : 000001C1;
+    A : 0000007C;
+    B : FFFFFFC6;
+    C : FFFFFF3E;
+    D : FFFFFFD7;
+    E : 00000016;
+    F : 00000160;
+END;

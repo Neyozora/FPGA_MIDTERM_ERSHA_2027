@@ -25,8 +25,8 @@ after it has been approved.
 | 1 | Dataset download, inspection, preprocessing | `sw/data/*`, `docs/preprocessing.md`, `docs/tensor_dimensions.md`, `reports/dataset/` | MD5s verified; 12/12 tests pass; split stratified and reproducible | **Done & approved** |
 | 2 | PyTorch model and shape verification | `sw/model/{cnn,summary}.py`, `sw/tests/test_m2_model.py`, `reports/model/` | shape assertions at every layer; parameter count = 1,418; 14/14 tests pass | **Done & approved** |
 | 3 | FP32 training and evaluation | `sw/train/*`, `checkpoints/fp32_best.pt`, `reports/training/` | loss/acc logs, confusion matrix, per-class accuracy, test accuracy = 86.56% recorded; 4/4 tests pass | **Done & approved** |
-| 4 | INT8 quantization | `docs/quantization_spec.md`, `sw/quant/*`, `checkpoints/int8_quantized.npz`, `reports/quantization/` | measured INT8 (85.87% QAT, 85.02% PTQ) vs FP32 (86.56%); scales/shifts/rounding/saturation documented per layer; 7/7 tests pass | **Done, awaiting approval** |
-| 5 | `.mem` / `.mif` export | `sw/export/*`, `mem/*`, `docs/memory_map.md` | every exported value read back and compared bit-exactly | Not started |
+| 4 | INT8 quantization | `docs/quantization_spec.md`, `sw/quant/*`, `checkpoints/int8_quantized.npz`, `reports/quantization/` | measured INT8 (85.87% QAT, 85.02% PTQ) vs FP32 (86.56%); scales/shifts/rounding/saturation documented per layer; 7/7 tests pass | **Done & approved** |
+| 5 | `.mem` / `.mif` export | `sw/export/*`, `mem/*`, `docs/memory_map.md`, `reports/export/` | every exported value read back and compared bit-exactly; 6/6 tests pass | **Done, awaiting approval** |
 | 6 | Integer reference model | `sw/refmodel/*`, golden vectors | integer model accuracy matches the M4 INT8 accuracy; per-layer dumps for RTL | Not started |
 | 7 | Verilog modules | `rtl/*.v` | lint/compile clean in ModelSim and Quartus Analysis & Synthesis | Not started |
 | 8 | Unit testbenches | `sim/tb/tb_*.v`, `sim/do/*.do` | every module matches the golden vectors, 0 mismatches | Not started |
@@ -137,3 +137,31 @@ after it has been approved.
      between INT8 and FP32 across the 10,000 test images.
 - Tests: `python -m sw.tests.test_m4_quant`: 7 passed, 0 failed, 0 skipped.
   Full suite (`pytest sw/tests`): 37 passed.
+
+### Milestone 5: Weight, Bias, and Test Image Export (`.mem` and `.mif`) (2026-11-13)
+
+- Objective: export all quantized INT8 weights, INT32 biases, dyadic
+  requantization parameters, and `32×32` INT8 test images into Verilog
+  `$readmemh`-compatible `.mem` files and Intel Quartus `.mif` files, document
+  the exact PyTorch-to-hardware address mapping, and verify every exported file
+  by reading it back and comparing bit-for-bit against the source quantized
+  tensors.
+- Files: `docs/memory_map.md`, `sw/export/__init__.py`,
+  `sw/export/formatters.py`, `sw/export/export_mem.py`,
+  `sw/tests/test_m5_export.py`, `mem/*.{mem,mif}`, `mem/export_manifest.json`,
+  `reports/export/export_report.md`.
+- Important implementation decisions:
+  1. **Clean `$readmemh` `.mem` format:** Each line contains only the uppercase
+     two's-complement hexadecimal word (`2` hex digits for 8-bit `INT8`, `8` hex
+     digits for 32-bit `INT32`), with no `@addr` tokens or inline comments so
+     both ModelSim 18.1 `$readmemh` and Quartus Prime BRAM synthesis infer
+     memories cleanly.
+  2. **Intel Quartus `.mif` compliance:** Every `.mif` file includes explicit
+     `WIDTH`, `DEPTH`, `ADDRESS_RADIX = HEX`, `DATA_RADIX = HEX`, and
+     `CONTENT BEGIN ... END;` blocks.
+  3. **Explicit PyTorch → Hardware loop ordering:** Documented and enforced
+     `addr = ((oc * C_in + ic) * 3 + ky) * 3 + kx` for Conv layers,
+     `addr = oc * 16 + ic` for FC weights, and `addr = (c * H + y) * W + x` for
+     feature maps (`(y << 5) | x` for `32×32` input images).
+- Tests: `python -m sw.tests.test_m5_export`: 6 passed, 0 failed, 0 skipped.
+  Full suite (`pytest sw/tests`): 43 passed.

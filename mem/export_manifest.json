@@ -1,0 +1,247 @@
+{
+  "source_checkpoint": "int8_quantized.npz",
+  "test_image_info": {
+    "vector_index": 0,
+    "official_test_index": 19,
+    "expected_label": 0,
+    "expected_class_name": "T-shirt/top"
+  },
+  "quantization_params_map": {
+    "0": {
+      "name": "conv1_mult",
+      "value": 23202,
+      "hex": "00005AA2"
+    },
+    "1": {
+      "name": "conv1_shift",
+      "value": 19,
+      "hex": "00000013"
+    },
+    "2": {
+      "name": "conv2_mult",
+      "value": 16868,
+      "hex": "000041E4"
+    },
+    "3": {
+      "name": "conv2_shift",
+      "value": 20,
+      "hex": "00000014"
+    },
+    "4": {
+      "name": "gap_mult",
+      "value": 16780,
+      "hex": "0000418C"
+    },
+    "5": {
+      "name": "gap_shift",
+      "value": 19,
+      "hex": "00000013"
+    },
+    "6": {
+      "name": "fc_mult",
+      "value": 23793,
+      "hex": "00005CF1"
+    },
+    "7": {
+      "name": "fc_shift",
+      "value": 21,
+      "hex": "00000015"
+    }
+  },
+  "files": {
+    "conv1_weights": {
+      "mem_file": "conv1_weights.mem",
+      "mif_file": "conv1_weights.mif",
+      "original_shape": [
+        8,
+        1,
+        3,
+        3
+      ],
+      "depth": 72,
+      "width_bits": 8,
+      "bytes": 72,
+      "min_val": -127,
+      "max_val": 27,
+      "first_4_hex": [
+        "02",
+        "0A",
+        "08",
+        "F3"
+      ],
+      "sha256_mem": "c39b3115ce97c6414772b60e364ce5a4492d6e930e247aa03ae97975b5e20f13",
+      "sha256_mif": "b347ae2c9715d05589ea31b4129060a978ab4637fe9651aa5eabfc5bcbd3ea0e",
+      "description": "Conv1 3x3 weights, order (oc, ic, ky, kx), addr = oc*9 + ky*3 + kx",
+      "readback_verified": true
+    },
+    "conv1_bias": {
+      "mem_file": "conv1_bias.mem",
+      "mif_file": "conv1_bias.mif",
+      "original_shape": [
+        8
+      ],
+      "depth": 8,
+      "width_bits": 32,
+      "bytes": 32,
+      "min_val": -125,
+      "max_val": 848,
+      "first_4_hex": [
+        "00000000",
+        "FFFFFFF8",
+        "FFFFFFA8",
+        "FFFFFFBE"
+      ],
+      "sha256_mem": "a6853a2827e5a02c1853577159ec9ef004c184192fb124ad26b309e2af4f9c18",
+      "sha256_mif": "f04b7d0c135eee5d09f09bf85520f03d82297ad450b96f7bf9081730cccb10c2",
+      "description": "Conv1 INT32 biases, addr = oc",
+      "readback_verified": true
+    },
+    "conv2_weights": {
+      "mem_file": "conv2_weights.mem",
+      "mif_file": "conv2_weights.mif",
+      "original_shape": [
+        16,
+        8,
+        3,
+        3
+      ],
+      "depth": 1152,
+      "width_bits": 8,
+      "bytes": 1152,
+      "min_val": -127,
+      "max_val": 46,
+      "first_4_hex": [
+        "07",
+        "06",
+        "07",
+        "03"
+      ],
+      "sha256_mem": "bb90d07d0361407bbdc3147f5b9960c2a4c28b50dea1cfe44c02286c542ee188",
+      "sha256_mif": "9d429f82c29b6997573f234ec187b3fe0dbe982a79c6efbe0843a830ec21be0b",
+      "description": "Conv2 3x3 weights, order (oc, ic, ky, kx), addr = oc*72 + ic*9 + ky*3 + kx",
+      "readback_verified": true
+    },
+    "conv2_bias": {
+      "mem_file": "conv2_bias.mem",
+      "mif_file": "conv2_bias.mif",
+      "original_shape": [
+        16
+      ],
+      "depth": 16,
+      "width_bits": 32,
+      "bytes": 64,
+      "min_val": -194,
+      "max_val": 458,
+      "first_4_hex": [
+        "000001B9",
+        "000001CA",
+        "FFFFFFD3",
+        "000000AE"
+      ],
+      "sha256_mem": "a83dde3a94bcc5eca9fbabf1eb0126418dd8784d70bfd3cf42aca54fbb16c884",
+      "sha256_mif": "ec133b4c24bca20f465522d4784b2f7a9ed183b88057f8f9c0c552173210acbd",
+      "description": "Conv2 INT32 biases, addr = oc",
+      "readback_verified": true
+    },
+    "fc_weights": {
+      "mem_file": "fc_weights.mem",
+      "mif_file": "fc_weights.mif",
+      "original_shape": [
+        10,
+        16
+      ],
+      "depth": 160,
+      "width_bits": 8,
+      "bytes": 160,
+      "min_val": -127,
+      "max_val": 74,
+      "first_4_hex": [
+        "00",
+        "21",
+        "03",
+        "01"
+      ],
+      "sha256_mem": "9bb8bb1d50505f1857ddf5770fc5081643e104b8705514c12666f8fa1ab99ea8",
+      "sha256_mif": "4aa5ff019d028a04b43bb81ede9456d010038c80e993db9adac8b1933751877b",
+      "description": "FC 16->10 weights, order (out_class, in_ch), addr = out_class*16 + in_ch",
+      "readback_verified": true
+    },
+    "fc_bias": {
+      "mem_file": "fc_bias.mem",
+      "mif_file": "fc_bias.mif",
+      "original_shape": [
+        10
+      ],
+      "depth": 10,
+      "width_bits": 32,
+      "bytes": 40,
+      "min_val": -509,
+      "max_val": 300,
+      "first_4_hex": [
+        "000000DB",
+        "FFFFFFD0",
+        "0000012C",
+        "FFFFFE03"
+      ],
+      "sha256_mem": "77a830f527faf97e8c6d8c4815ac520892bb9647cb2530fe1a88588461c3292e",
+      "sha256_mif": "de01a6765729ddea790157b5736ff5e94de589928858be995750acb8a719d466",
+      "description": "FC INT32 biases, addr = out_class",
+      "readback_verified": true
+    },
+    "quantization_params": {
+      "mem_file": "quantization_params.mem",
+      "mif_file": "quantization_params.mif",
+      "original_shape": [
+        8
+      ],
+      "depth": 8,
+      "width_bits": 32,
+      "bytes": 32,
+      "min_val": 19,
+      "max_val": 23793,
+      "first_4_hex": [
+        "00005AA2",
+        "00000013",
+        "000041E4",
+        "00000014"
+      ],
+      "sha256_mem": "74d4c260d703a840e9db4fcb4f09fef97e5962ec3c861f46e85e0efcb49df10f",
+      "sha256_mif": "8c648b4a95419f2e08b25fead751f6d2be3113e3309f90cfb31289a6b4e39765",
+      "description": "Requantization (M, shift) for conv1, conv2, gap, fc",
+      "readback_verified": true
+    },
+    "test_image": {
+      "mem_file": "test_image.mem",
+      "mif_file": "test_image.mif",
+      "original_shape": [
+        32,
+        32
+      ],
+      "depth": 1024,
+      "width_bits": 8,
+      "bytes": 1024,
+      "min_val": 0,
+      "max_val": 127,
+      "first_4_hex": [
+        "00",
+        "00",
+        "00",
+        "00"
+      ],
+      "sha256_mem": "98158f732044488fb1d04f13a4647e2f746d0154bc5d1d77602a3676b34ca001",
+      "sha256_mif": "bf0f432cfc51d7638cce1f8c09972d4a2697f64bb63d94653159b2718dd47b6b",
+      "description": "Test vector #0 (official test idx 19, label 0=T-shirt/top), row-major 32x32",
+      "readback_verified": true
+    }
+  },
+  "batch_testbench_files": {
+    "test_images_100.mem": {
+      "depth": 102400,
+      "width_bits": 8
+    },
+    "test_labels_100.mem": {
+      "depth": 100,
+      "width_bits": 8
+    }
+  }
+}

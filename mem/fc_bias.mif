@@ -1,0 +1,18 @@
+-- FC INT32 biases, addr = out_class
+DEPTH = 10;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
+BEGIN
+    0 : 000000DB;
+    1 : FFFFFFD0;
+    2 : 0000012C;
+    3 : FFFFFE03;
+    4 : 000000F1;
+    5 : 00000010;
+    6 : 00000052;
+    7 : FFFFFF52;
+    8 : FFFFFEC7;
+    9 : FFFFFF22;
+END;

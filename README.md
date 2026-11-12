@@ -16,9 +16,10 @@ The ARM HPS is **not** used to run the network.
 
 Long-term target: LSI Design Contest 2027.
 
-> **Current status:** Milestones 1–4 are complete (FP32 test accuracy:
-> **86.56%**, QAT INT8 hardware-exact test accuracy: **85.87%**). Waiting for
-> approval to start Milestone 5 (`.mem` and `.mif` export). See the
+> **Current status:** Milestones 1–5 are complete (FP32 test accuracy:
+> **86.56%**, QAT INT8 hardware-exact test accuracy: **85.87%**, all `.mem` and
+> `.mif` memory files exported and read-back verified). Waiting for approval to
+> start Milestone 6 (Python integer reference model). See the
 > [milestone log](docs/development_plan.md).
 
 ---
@@ -82,7 +83,7 @@ fpga_midterm/
 │   ├── preprocessing.md         dataset + input conversion spec        (M1)
 │   ├── tensor_dimensions.md     every tensor shape, MACs, memory sizes (M1)
 │   ├── quantization_spec.md     scales, shifts, rounding, saturation   (M4)
-│   ├── memory_map.md            .mem/.mif layouts and address maps     (M5, planned)
+│   ├── memory_map.md            .mem/.mif layouts and address maps     (M5)
 │   └── rtl_architecture.md      block diagrams, FSM, timing            (M7, planned)
 ├── sw/                          Python package, run as `python -m sw.<module>`
 │   ├── config.py                paths + numeric conventions (single source of truth)
@@ -90,7 +91,7 @@ fpga_midterm/
 │   ├── model/                   PyTorch CNN + shape checks                   (M2)
 │   ├── train/                   FP32 training, evaluation & confusion matrix (M3)
 │   ├── quant/                   PTQ / QAT, integer parameter extraction      (M4)
-│   ├── export/                  .mem/.mif writers + read-back verification   (M5, planned)
+│   ├── export/                  .mem/.mif writers + read-back verification   (M5)
 │   ├── refmodel/                bit-exact integer inference + golden vectors (M6, planned)
 │   └── tests/                   automated tests per milestone
 ├── data/
@@ -98,7 +99,7 @@ fpga_midterm/
 │   ├── processed/               regenerated .npz files   (git-ignored)
 │   └── splits/                  train/val indices        (tracked)
 ├── checkpoints/                 trained models           (M3, git-ignored)
-├── mem/                         exported .mem / .mif     (M5, planned)
+├── mem/                         exported .mem / .mif     (M5)
 ├── rtl/                         synthesizable Verilog-2001 (M7, planned)
 ├── sim/
 │   ├── tb/                      testbenches              (M8, planned)
@@ -110,6 +111,7 @@ fpga_midterm/
     ├── model/                   M2 shapes, parameter & MAC summary
     ├── training/                M3 logs, curves, confusion matrix & report
     ├── quantization/            M4 INT8 vs FP32 report, scales & plots
+    ├── export/                  M5 .mem/.mif verification summary
     ├── simulation/              M8–M9 (planned)
     └── synthesis/               M10 (planned, kept separate from simulation)
 ```
@@ -275,11 +277,27 @@ python -m sw.tests.test_m4_quant     # 7 automated checks
 
 ## 8. Memory format
 
-*Milestone 5, not started.* Planned:
+Full memory layout and address mapping: [`docs/memory_map.md`](docs/memory_map.md).
+Generated report: [`reports/export/export_report.md`](reports/export/export_report.md).
 
-- `$readmemh`-compatible `.mem` files and Quartus `.mif` files
-- explicit PyTorch → hardware reordering
-- read-back verification of every value
+- **Exported files (`mem/`):**
+  - `conv1_weights.mem` / `.mif` (depth 72, width 8b, `INT8` two's-complement hex)
+  - `conv1_bias.mem` / `.mif` (depth 8, width 32b, `INT32` two's-complement hex)
+  - `conv2_weights.mem` / `.mif` (depth 1,152, width 8b, `INT8` two's-complement hex)
+  - `conv2_bias.mem` / `.mif` (depth 16, width 32b, `INT32` two's-complement hex)
+  - `fc_weights.mem` / `.mif` (depth 160, width 8b, `INT8` two's-complement hex)
+  - `fc_bias.mem` / `.mif` (depth 10, width 32b, `INT32` two's-complement hex)
+  - `quantization_params.mem` / `.mif` (depth 8, width 32b: `(M, n)` pairs for `conv1`, `conv2`, `gap`, `fc`)
+  - `test_image.mem` / `.mif` (depth 1,024, width 8b: `32×32` zero-padded INT8 test image)
+  - `test_images_100.mem` & `test_labels_100.mem` (all 100 hardware test vectors for batch simulation)
+- **Verification:** Every `.mem` and `.mif` file is read back into Python, its `DEPTH`/`WIDTH`/`ADDRESS_RADIX`/`DATA_RADIX`/`CONTENT` declarations validated, and every element compared bit-for-bit against the original quantized tensors.
+
+Reproduce:
+
+```powershell
+python -m sw.export.export_mem       # export all .mem & .mif files + read-back verification
+python -m sw.tests.test_m5_export    # 6 automated checks
+```
 
 ## 9. Integer reference model
 
@@ -320,8 +338,8 @@ flowchart TB
 | 1 | Dataset download, inspection, preprocessing (`32×32` zero-padded) | ✅ Done (12/12 tests pass) |
 | 2 | PyTorch model and tensor shape verification (`32×32` input) | ✅ Done (14/14 tests pass) |
 | 3 | FP32 training and evaluation (**86.56%** test acc) | ✅ Done (4/4 tests pass) |
-| 4 | INT8 quantization and evaluation (**85.87%** QAT / **85.02%** PTQ test acc) | ✅ Done (7/7 tests pass), awaiting approval |
-| 5 | `.mem` / `.mif` export | ⏳ Not started |
+| 4 | INT8 quantization and evaluation (**85.87%** QAT / **85.02%** PTQ test acc) | ✅ Done (7/7 tests pass) |
+| 5 | `.mem` / `.mif` export (read-back verified) | ✅ Done (6/6 tests pass), awaiting approval |
 | 6 | Python integer reference model | ⏳ Not started |
 | 7 | Individual Verilog modules | ⏳ Not started |
 | 8 | Individual ModelSim testbenches | ⏳ Not started |

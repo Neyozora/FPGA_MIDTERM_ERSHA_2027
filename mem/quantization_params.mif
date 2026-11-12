@@ -1,0 +1,16 @@
+-- Requantization (M, shift) for conv1, conv2, gap, fc
+DEPTH = 8;
+WIDTH = 32;
+ADDRESS_RADIX = HEX;
+DATA_RADIX = HEX;
+CONTENT
+BEGIN
+    0 : 00005AA2;
+    1 : 00000013;
+    2 : 000041E4;
+    3 : 00000014;
+    4 : 0000418C;
+    5 : 00000013;
+    6 : 00005CF1;
+    7 : 00000015;
+END;
