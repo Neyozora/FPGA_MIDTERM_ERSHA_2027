@@ -38,8 +38,11 @@ M10K_BITS = 10_240
 # ---------------------------------------------------------------------------
 # Dataset constants
 # ---------------------------------------------------------------------------
-IMG_H = 28
-IMG_W = 28
+RAW_IMG_H = 28
+RAW_IMG_W = 28
+INPUT_PAD = 2               # 2-pixel zero-padding on top, bottom, left, right
+IMG_H = RAW_IMG_H + 2 * INPUT_PAD   # 32 (LSI Design Contest 2027 input size)
+IMG_W = RAW_IMG_W + 2 * INPUT_PAD   # 32
 IMG_C = 1
 NUM_CLASSES = 10
 

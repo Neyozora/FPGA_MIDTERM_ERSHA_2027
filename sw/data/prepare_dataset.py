@@ -16,13 +16,14 @@ import sys
 
 import numpy as np
 
-from sw.config import (CLASS_NAMES, INPUT_FRAC_BITS, INPUT_SCALE, INPUT_SHIFT, INPUT_ZERO_POINT,
-                       NUM_CLASSES, PROCESSED_DIR, RAW_DIR, SEED, SPLITS_DIR,
-                       TEST_VECTORS_PER_CLASS, VAL_PER_CLASS)
+from sw.config import (CLASS_NAMES, IMG_H, IMG_W, INPUT_FRAC_BITS, INPUT_PAD, INPUT_SCALE,
+                       INPUT_SHIFT, INPUT_ZERO_POINT, NUM_CLASSES, PROCESSED_DIR, RAW_DIR,
+                       RAW_IMG_H, RAW_IMG_W, SEED, SPLITS_DIR, TEST_VECTORS_PER_CLASS,
+                       VAL_PER_CLASS)
 from sw.data.dataset import (PROCESSED_FILE, TEST_VECTORS_FILE, load_raw, sha256_of_arrays,
                              stratified_split)
 from sw.data.download import fetch_all
-from sw.data.preprocess import pixels_to_int8
+from sw.data.preprocess import pad_to_32x32, pixels_to_int8
 
 
 def select_test_vectors(labels: np.ndarray, per_class: int) -> np.ndarray:
@@ -68,10 +69,10 @@ def main(argv=None) -> int:
     assert np.array_equal(np.bincount(y_train_full[val_idx], minlength=NUM_CLASSES),
                           np.full(NUM_CLASSES, VAL_PER_CLASS)), "validation split not stratified"
 
-    # ---- convert to INT8 -------------------------------------------------
-    x_train = pixels_to_int8(x_train_full_u8[train_idx])
-    x_val = pixels_to_int8(x_train_full_u8[val_idx])
-    x_test = pixels_to_int8(x_test_u8)
+    # ---- pad 28x28 -> 32x32 (2-px zero border) and convert to INT8 --------
+    x_train = pixels_to_int8(x_train_full_u8[train_idx], pad_28_to_32=True)
+    x_val = pixels_to_int8(x_train_full_u8[val_idx], pad_28_to_32=True)
+    x_test = pixels_to_int8(x_test_u8, pad_28_to_32=True)
     y_train, y_val = y_train_full[train_idx], y_train_full[val_idx]
 
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
@@ -82,14 +83,19 @@ def main(argv=None) -> int:
     # ---- representative test vectors for RTL simulation -------------------
     tv_idx = select_test_vectors(y_test, TEST_VECTORS_PER_CLASS)
     np.savez_compressed(TEST_VECTORS_FILE, test_idx=tv_idx, labels=y_test[tv_idx],
-                        images_u8=x_test_u8[tv_idx], images_int8=x_test[tv_idx])
+                        images_raw_u8=x_test_u8[tv_idx],
+                        images_u8=pad_to_32x32(x_test_u8[tv_idx]),
+                        images_int8=x_test[tv_idx])
 
     # ---- manifest --------------------------------------------------------
     manifest = {
         "source": "https://github.com/zalandoresearch/fashion-mnist",
         "class_names": CLASS_NAMES,
         "input_conversion": {
-            "formula": f"q_in = pixel >> {INPUT_SHIFT};  x = q_in * 2^-{INPUT_FRAC_BITS}",
+            "raw_shape": [RAW_IMG_H, RAW_IMG_W],
+            "padded_shape": [IMG_H, IMG_W],
+            "zero_pad_border": INPUT_PAD,
+            "formula": f"pad 28x28 -> 32x32 with {INPUT_PAD}px zeros; q_in = pixel >> {INPUT_SHIFT}; x = q_in * 2^-{INPUT_FRAC_BITS}",
             "input_scale": INPUT_SCALE,
             "zero_point": INPUT_ZERO_POINT,
             "q_range": [int(x_test.min()), int(x_test.max())],

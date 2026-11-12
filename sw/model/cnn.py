@@ -1,14 +1,14 @@
 """
-Two-layer CNN for Fashion-MNIST, kept deliberately simple so that every
-operation maps 1:1 onto an RTL module.
+Two-layer CNN for Fashion-MNIST (32x32 zero-padded input), kept deliberately
+simple so that every operation maps 1:1 onto an RTL module.
 
-    input  [N, 1, 28, 28]   x = q_in / 128  (see sw/data/preprocess.py)
-    conv1  [N, 8, 26, 26]   3x3, 1->8,  stride 1, VALID, bias
-    relu1  [N, 8, 26, 26]
-    pool1  [N, 8, 13, 13]   max 2x2, stride 2
-    conv2  [N,16, 11, 11]   3x3, 8->16, stride 1, VALID, bias
-    relu2  [N,16, 11, 11]
-    gap    [N,16]           mean over the 11x11 = 121 spatial positions
+    input  [N, 1, 32, 32]   x = q_in / 128  (2-px zero-padded 28x28 -> 32x32)
+    conv1  [N, 8, 30, 30]   3x3, 1->8,  stride 1, VALID, bias
+    relu1  [N, 8, 30, 30]
+    pool1  [N, 8, 15, 15]   max 2x2, stride 2
+    conv2  [N,16, 13, 13]   3x3, 8->16, stride 1, VALID, bias
+    relu2  [N,16, 13, 13]
+    gap    [N,16]           mean over the 13x13 = 169 spatial positions
     fc     [N,10]           16->10, bias      (class scores / logits)
     argmax [N]              predicted class (applied outside the module)
 
@@ -48,19 +48,19 @@ GAP_N = C2_H * C2_W  # number of values averaged per channel
 
 # Expected per-sample shapes (batch dimension excluded), in forward order.
 SHAPES = OrderedDict([
-    ("input", (CONV1_IN, IMG_H, IMG_W)),     # (1, 28, 28)
-    ("conv1", (CONV1_OUT, C1_H, C1_W)),      # (8, 26, 26)
-    ("relu1", (CONV1_OUT, C1_H, C1_W)),      # (8, 26, 26)
-    ("pool1", (CONV1_OUT, P1_H, P1_W)),      # (8, 13, 13)
-    ("conv2", (CONV2_OUT, C2_H, C2_W)),      # (16, 11, 11)
-    ("relu2", (CONV2_OUT, C2_H, C2_W)),      # (16, 11, 11)
+    ("input", (CONV1_IN, IMG_H, IMG_W)),     # (1, 32, 32)
+    ("conv1", (CONV1_OUT, C1_H, C1_W)),      # (8, 30, 30)
+    ("relu1", (CONV1_OUT, C1_H, C1_W)),      # (8, 30, 30)
+    ("pool1", (CONV1_OUT, P1_H, P1_W)),      # (8, 15, 15)
+    ("conv2", (CONV2_OUT, C2_H, C2_W)),      # (16, 13, 13)
+    ("relu2", (CONV2_OUT, C2_H, C2_W)),      # (16, 13, 13)
     ("gap", (FC_IN,)),                       # (16,)
     ("fc", (FC_OUT,)),                       # (10,)
 ])
 
 # Hard-coded expectations from the project specification: a change to any
 # constant above that breaks the spec fails loudly at import time.
-assert (C1_H, P1_H, C2_H, GAP_N) == (26, 13, 11, 121)
+assert (C1_H, P1_H, C2_H, GAP_N) == (30, 15, 13, 169)
 assert C1_H % POOL_S == 0, "max-pool would silently drop a row/column"
 
 
@@ -134,7 +134,7 @@ def expected_param_counts() -> "OrderedDict[str, int]":
 
 def expected_macs() -> "OrderedDict[str, int]":
     return OrderedDict([
-        ("conv1", CONV1_OUT * C1_H * C1_W * CONV1_IN * KERNEL * KERNEL),  # 48,672
-        ("conv2", CONV2_OUT * C2_H * C2_W * CONV2_IN * KERNEL * KERNEL),  # 139,392
+        ("conv1", CONV1_OUT * C1_H * C1_W * CONV1_IN * KERNEL * KERNEL),  # 64,800
+        ("conv2", CONV2_OUT * C2_H * C2_W * CONV2_IN * KERNEL * KERNEL),  # 194,688
         ("fc", FC_OUT * FC_IN),                                           # 160
     ])

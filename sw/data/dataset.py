@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 
 from sw.config import (IMG_H, IMG_W, NUM_CLASSES, NUM_TEST_OFFICIAL, NUM_TRAIN_OFFICIAL,
-                       PROCESSED_DIR, RAW_DIR)
+                       PROCESSED_DIR, RAW_DIR, RAW_IMG_H, RAW_IMG_W)
 from sw.data.idx import read_idx
 
 RAW_FILES = {
@@ -26,7 +26,7 @@ def load_raw(split: str, raw_dir: Path = RAW_DIR):
     images = read_idx(raw_dir / img_name)
     labels = read_idx(raw_dir / lbl_name)
     assert images.dtype == np.uint8 and labels.dtype == np.uint8
-    assert images.shape == (n_expected, IMG_H, IMG_W), images.shape
+    assert images.shape == (n_expected, RAW_IMG_H, RAW_IMG_W), images.shape
     assert labels.shape == (n_expected,), labels.shape
     assert labels.min() >= 0 and labels.max() < NUM_CLASSES
     return images, labels
@@ -66,7 +66,7 @@ def sha256_of_arrays(*arrays: np.ndarray) -> str:
 def load_processed(path: Path = PROCESSED_FILE) -> dict:
     """
     Load the processed dataset. Keys:
-        x_train, x_val, x_test : int8  [N, 28, 28], values in [0, 127]
+        x_train, x_val, x_test : int8  [N, 32, 32], values in [0, 127] (2-px zero-padded)
         y_train, y_val, y_test : uint8 [N]
         train_idx, val_idx     : int64 indices into the official 60k train set
     """

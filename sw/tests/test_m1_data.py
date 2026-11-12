@@ -20,7 +20,7 @@ from sw.data.dataset import (PROCESSED_FILE, TEST_VECTORS_FILE, load_processed, 
                              sha256_of_arrays, stratified_split)
 from sw.data.download import FILES, md5sum
 from sw.data.idx import read_idx, write_idx
-from sw.data.preprocess import float_to_int8, int8_to_float, pixels_to_int8
+from sw.data.preprocess import float_to_int8, int8_to_float, pad_to_32x32, pixels_to_int8
 from sw.tests._runner import need as _need
 from sw.tests._runner import run_all
 
@@ -55,6 +55,16 @@ def test_pixels_to_int8_exhaustive():
     assert q.dtype == np.int8
     assert q.min() == 0 and q.max() == 127
     assert np.array_equal(q.astype(np.int32), np.arange(256) // 2)  # floor(p/2)
+
+
+def test_pad_to_32x32_preserves_center_and_zeroes_border():
+    rng = np.random.default_rng(7)
+    raw = rng.integers(1, 256, size=(4, 28, 28), dtype=np.uint8)
+    padded = pad_to_32x32(raw)
+    assert padded.shape == (4, 32, 32) and padded.dtype == np.uint8
+    assert np.array_equal(padded[:, 2:30, 2:30], raw)
+    assert (padded[:, :2, :] == 0).all() and (padded[:, -2:, :] == 0).all()
+    assert (padded[:, :, :2] == 0).all() and (padded[:, :, -2:] == 0).all()
 
 
 def test_int8_float_roundtrip_exact():
@@ -106,15 +116,18 @@ def test_processed_dataset_consistent_with_raw():
     d = load_processed()
     x_tr_u8, y_tr = load_raw("train")
     x_te_u8, y_te = load_raw("test")
-    assert d["x_train"].shape == (60000 - 10 * VAL_PER_CLASS, 28, 28)
-    assert d["x_val"].shape == (10 * VAL_PER_CLASS, 28, 28)
-    assert d["x_test"].shape == (10000, 28, 28)
+    assert d["x_train"].shape == (60000 - 10 * VAL_PER_CLASS, 32, 32)
+    assert d["x_val"].shape == (10 * VAL_PER_CLASS, 32, 32)
+    assert d["x_test"].shape == (10000, 32, 32)
     for k in ("x_train", "x_val", "x_test"):
         assert d[k].dtype == np.int8 and d[k].min() >= 0 and d[k].max() <= 127
+        # 2-pixel border must be all zeros
+        assert (d[k][:, :2, :] == 0).all() and (d[k][:, -2:, :] == 0).all()
+        assert (d[k][:, :, :2] == 0).all() and (d[k][:, :, -2:] == 0).all()
     # recompute every processed image from the raw data
-    assert np.array_equal(d["x_train"], pixels_to_int8(x_tr_u8[d["train_idx"]]))
-    assert np.array_equal(d["x_val"], pixels_to_int8(x_tr_u8[d["val_idx"]]))
-    assert np.array_equal(d["x_test"], pixels_to_int8(x_te_u8))
+    assert np.array_equal(d["x_train"], pixels_to_int8(x_tr_u8[d["train_idx"]], pad_28_to_32=True))
+    assert np.array_equal(d["x_val"], pixels_to_int8(x_tr_u8[d["val_idx"]], pad_28_to_32=True))
+    assert np.array_equal(d["x_test"], pixels_to_int8(x_te_u8, pad_28_to_32=True))
     assert np.array_equal(d["y_train"], y_tr[d["train_idx"]])
     assert np.array_equal(d["y_val"], y_tr[d["val_idx"]])
     assert np.array_equal(d["y_test"], y_te)
@@ -137,8 +150,9 @@ def test_test_vectors():
     with np.load(TEST_VECTORS_FILE) as tv:
         idx, lbl, u8, i8 = tv["test_idx"], tv["labels"], tv["images_u8"], tv["images_int8"]
     assert idx.size == NUM_CLASSES * TEST_VECTORS_PER_CLASS
+    assert u8.shape == (idx.size, 32, 32) and i8.shape == (idx.size, 32, 32)
     assert np.array_equal(lbl, y_te[idx])
-    assert np.array_equal(u8, x_te_u8[idx])
+    assert np.array_equal(u8, pad_to_32x32(x_te_u8[idx]))
     assert np.array_equal(i8, pixels_to_int8(u8))
     assert np.array_equal(np.bincount(lbl, minlength=NUM_CLASSES),
                           np.full(NUM_CLASSES, TEST_VECTORS_PER_CLASS))

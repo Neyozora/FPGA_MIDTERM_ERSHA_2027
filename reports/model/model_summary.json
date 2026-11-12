@@ -3,38 +3,38 @@
     "input": [
       64,
       1,
-      28,
-      28
+      32,
+      32
     ],
     "conv1": [
       64,
       8,
-      26,
-      26
+      30,
+      30
     ],
     "relu1": [
       64,
       8,
-      26,
-      26
+      30,
+      30
     ],
     "pool1": [
       64,
       8,
-      13,
-      13
+      15,
+      15
     ],
     "conv2": [
       64,
       16,
-      11,
-      11
+      13,
+      13
     ],
     "relu2": [
       64,
       16,
-      11,
-      11
+      13,
+      13
     ],
     "gap": [
       64,
@@ -59,16 +59,16 @@
     "int8_weights_int32_bias_bytes": 1520
   },
   "macs": {
-    "conv1": 48672,
-    "conv2": 139392,
+    "conv1": 64800,
+    "conv2": 194688,
     "fc": 160
   },
-  "total_macs": 188224,
+  "total_macs": 259648,
   "gpu": {
     "available": true,
     "name": "NVIDIA GeForce RTX 5050 Laptop GPU",
     "capability": "12.0",
-    "max_abs_diff_vs_cpu": 2.9802322387695312e-08
+    "max_abs_diff_vs_cpu": 2.2351741790771484e-08
   },
   "env": {
     "python": "3.12.0",

@@ -9,12 +9,12 @@ Environment: Python 3.12.0, PyTorch 2.11.0+cu128, CUDA runtime 12.8, cuDNN 91900
 
 | Tensor | Shape (N,C,H,W) | Elements / image | Matches spec |
 |---|---|---|---|
-| input | [64, 1, 28, 28] | 784 | yes |
-| conv1 | [64, 8, 26, 26] | 5,408 | yes |
-| relu1 | [64, 8, 26, 26] | 5,408 | yes |
-| pool1 | [64, 8, 13, 13] | 1,352 | yes |
-| conv2 | [64, 16, 11, 11] | 1,936 | yes |
-| relu2 | [64, 16, 11, 11] | 1,936 | yes |
+| input | [64, 1, 32, 32] | 1,024 | yes |
+| conv1 | [64, 8, 30, 30] | 7,200 | yes |
+| relu1 | [64, 8, 30, 30] | 7,200 | yes |
+| pool1 | [64, 8, 15, 15] | 1,800 | yes |
+| conv2 | [64, 16, 13, 13] | 2,704 | yes |
+| relu2 | [64, 16, 13, 13] | 2,704 | yes |
 | gap | [64, 16] | 16 | yes |
 | fc | [64, 10] | 10 | yes |
 
@@ -41,14 +41,14 @@ Environment: Python 3.12.0, PyTorch 2.11.0+cu128, CUDA runtime 12.8, cuDNN 91900
 
 | Layer | MACs |
 |---|---|
-| conv1 | 48,672 |
-| conv2 | 139,392 |
+| conv1 | 64,800 |
+| conv2 | 194,688 |
 | fc | 160 |
-| **Total** | **188,224** |
+| **Total** | **259,648** |
 
 ## GPU check
 
 - Device: NVIDIA GeForce RTX 5050 Laptop GPU (compute capability 12.0)
-- Max absolute logit difference GPU vs CPU (same weights, same batch): 2.980e-08
+- Max absolute logit difference GPU vs CPU (same weights, same batch): 2.235e-08
 
 Classes: 0=T-shirt/top, 1=Trouser, 2=Pullover, 3=Dress, 4=Coat, 5=Sandal, 6=Shirt, 7=Sneaker, 8=Bag, 9=Ankle boot

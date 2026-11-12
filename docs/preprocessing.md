@@ -34,7 +34,14 @@ payload length.
 - `data/processed/manifest.json` records a SHA-256 fingerprint of the indices
   and of every processed array.
 
-## Pixel → INT8 input conversion
+## 28×28 → 32×32 zero-padding and pixel → INT8 conversion
+
+To match the **LSI Design Contest 2027** `32 × 32` input requirement and align
+with the natural `1,024 × 8-bit` depth of a Cyclone V M10K BRAM block, each raw
+`28 × 28` Fashion-MNIST image is symmetrically padded with a **2-pixel border of
+zeros** on all four sides (top, bottom, left, right) to produce a `32 × 32`
+image (`pad_to_32x32()` in [`sw/data/preprocess.py`](../sw/data/preprocess.py)),
+followed by:
 
 $$
 q_{in} = p \gg 1 = \left\lfloor p / 2 \right\rfloor, \quad p \in [0,255] \Rightarrow q_{in} \in [0,127]
@@ -44,7 +51,10 @@ $$
 x = q_{in} \cdot s_{in}, \quad s_{in} = 2^{-7} = 1/128, \quad z_{in} = 0
 $$
 
-- `q_in` is the signed INT8 value that the FPGA reads from `test_image.mem`.
+- Because the zero-point is `z_in = 0`, the 2-pixel zero border is `0` in raw
+  `uint8`, `0` in signed `int8`, and `0.0` in `float32`.
+- `q_in` (`32 × 32 = 1,024` signed INT8 bytes) is the value that the FPGA reads
+  from `test_image.mem`.
 - `x` is the value the floating-point model is trained on. Because `s_in` is
   a power of two, `x` is exact in float32, so the FP32/QAT model and the
   hardware see the same input. There is no separate float-only normalization.

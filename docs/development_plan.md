@@ -41,7 +41,7 @@ after it has been approved.
 | Requantization | `y = sat8((acc · M0 + 2^(n−1)) >>> n)`, with integer multiplier M0 and shift n per layer, round half up, saturate to [−128, 127] | 4 |
 | Training method | PTQ first (simple baseline), then QAT with fake-quant that uses the *same* integer rounding rules | 4 |
 | ReLU placement | apply after requantization: clamp to [0, 127] | 4/7 |
-| GAP division by 121 | multiply-and-shift reciprocal (e.g. `(sum·M_gap + 2^(k−1)) >> k`), or fold into FC scale; exact formula fixed in M4 and mirrored in the reference model | 4/6 |
+| GAP division by 169 | multiply-and-shift reciprocal (e.g. `(sum·M_gap + 2^(k−1)) >> k`), or fold into FC scale; exact formula fixed in M4 and mirrored in the reference model | 4/6 |
 | Argmax input | FC INT32 accumulators *or* requantized INT8 scores; tie-break = lowest index | 4/7 |
 | Activation memory layout | channel-planar CHW, address = `c·H·W + y·W + x` | 5 |
 | Weight memory layout | `[oc][ic][ky][kx]` flattened, explicit conversion from PyTorch OIHW | 5 |
@@ -59,28 +59,31 @@ after it has been approved.
 - Results:
   - All 4 files downloaded from the official GitHub repo; MD5s match.
   - Split: 54,000 train / 6,000 val (600 per class) / 10,000 test.
+  - 28×28 images symmetrically zero-padded with a 2-pixel border to `32×32`
+    (for LSI Design Contest 2027 compatibility and exact `1,024 × 8b` M10K BRAM
+    alignment).
   - INT8 range [0, 127].
-  - 100 hardware test vectors.
-- Tests: `python -m sw.tests.test_m1_data`: 11 passed, 0 failed, 0 skipped.
-  `pytest`: 11 passed.
+  - 100 hardware test vectors (`32×32` INT8).
+- Tests: `python -m sw.tests.test_m1_data`: 12 passed, 0 failed, 0 skipped.
+  `pytest`: 12 passed.
 - Issue fixed during the milestone: the test skip helper raised pytest's
   `Skipped` exception even when pytest was not the runner. It now checks
   `PYTEST_CURRENT_TEST`.
 
 ### Milestone 2: PyTorch Model & Tensor Shape Verification (2026-11-12)
 
-- Objective: implement the two-layer CNN in PyTorch with runtime shape checks
-  at every stage, verify parameter counts, MAC counts, model byte sizes, and
-  GPU vs CPU parity on a real Fashion-MNIST batch.
+- Objective: implement the two-layer CNN in PyTorch (`32×32` input) with runtime
+  shape checks at every stage, verify parameter counts, MAC counts, model byte
+  sizes, and GPU vs CPU parity on a real Fashion-MNIST batch.
 - Files: `sw/model/__init__.py`, `sw/model/cnn.py`, `sw/model/summary.py`,
   `sw/tests/_runner.py`, `sw/tests/test_m2_model.py`,
   `reports/model/{model_summary.md,model_summary.json}`.
 - Results:
-  - All 8 tensor stages match specification (`(1,28,28)` → `(8,26,26)` →
-    `(8,26,26)` → `(8,13,13)` → `(16,11,11)` → `(16,11,11)` → `(16,)` → `(10,)`).
+  - All 8 tensor stages match specification (`(1,32,32)` → `(8,30,30)` →
+    `(8,30,30)` → `(8,15,15)` → `(16,13,13)` → `(16,13,13)` → `(16,)` → `(10,)`).
   - Parameter count: 1,418 (1,384 weights + 34 biases).
   - Model size: 5,672 B (FP32) / 1,520 B (INT8 weights + INT32 biases).
-  - MACs per image: 188,224 (Conv1: 48,672, Conv2: 139,392, FC: 160).
-  - GPU check on RTX 5050 (`sm_12.0`): max `|logits_gpu - logits_cpu| = 2.980e-08`.
+  - MACs per image: 259,648 (Conv1: 64,800, Conv2: 194,688, FC: 160).
+  - GPU check on RTX 5050 (`sm_12.0`): max `|logits_gpu - logits_cpu| = 2.235e-08`.
 - Tests: `python -m sw.tests.test_m2_model`: 14 passed, 0 failed, 0 skipped.
-  Full suite (`pytest sw/tests`): 25 passed.
+  Full suite (`pytest sw/tests`): 26 passed.

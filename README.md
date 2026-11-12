@@ -152,18 +152,22 @@ Generated report: [reports/dataset/dataset_report.md](reports/dataset/dataset_re
   | test | 10,000 | 1,000 | official test set |
 
 - **Input conversion (the Python ↔ FPGA contract):**
-  `q_in = pixel >> 1` gives INT8 values in [0, 127]. The FP32 model is trained
-  on `x = q_in / 128` (scale 2⁻⁷, zero point 0), so float and hardware inputs
-  are identical up to an exact power-of-two scale.
+  Each `28×28` image is symmetrically zero-padded with a 2-pixel border to
+  **`32×32`** (for LSI Design Contest 2027 compatibility and exact `1,024 × 8b`
+  M10K BRAM alignment), then converted via `q_in = pixel >> 1` into INT8 values
+  in `[0, 127]`. The FP32 model is trained on `x = q_in / 128` (scale 2⁻⁷, zero
+  point 0), so float and hardware inputs are identical up to an exact
+  power-of-two scale.
 - **Hardware test vectors:** the first 10 test images of each class (100
-  images), with labels. They are written to `test_image.mem` in Milestone 5.
+  images, `32×32` INT8), with labels. They are written to `test_image.mem` in
+  Milestone 5.
 
 Reproduce:
 
 ```powershell
-python -m sw.data.prepare_dataset    # download + MD5 check + split + INT8 conversion
+python -m sw.data.prepare_dataset    # download + MD5 check + split + 32x32 pad + INT8 conversion
 python -m sw.data.inspect_dataset    # statistics + figures -> reports/dataset/
-python -m sw.tests.test_m1_data      # 11 automated checks
+python -m sw.tests.test_m1_data      # 12 automated checks
 ```
 
 ![INT8 samples](reports/dataset/samples_int8_grid.png)
@@ -175,26 +179,26 @@ Full table with MACs, memory and accumulator-range analysis:
 
 ```mermaid
 flowchart LR
-    I["Input<br/>1×28×28<br/>INT8"] --> C1["Conv1 3×3<br/>1→8, VALID<br/>8×26×26"]
-    C1 --> R1["ReLU"] --> P1["MaxPool 2×2/2<br/>8×13×13"]
-    P1 --> C2["Conv2 3×3<br/>8→16, VALID<br/>16×11×11"]
-    C2 --> R2["ReLU"] --> G["GAP<br/>16"]
+    I["Input<br/>1×32×32<br/>INT8 (2px pad)"] --> C1["Conv1 3×3<br/>1→8, VALID<br/>8×30×30"]
+    C1 --> R1["ReLU"] --> P1["MaxPool 2×2/2<br/>8×15×15"]
+    P1 --> C2["Conv2 3×3<br/>8→16, VALID<br/>16×13×13"]
+    C2 --> R2["ReLU"] --> G["GAP (÷169)<br/>16"]
     G --> F["FC 16→10<br/>10 scores"] --> A["Argmax<br/>class 0..9"]
 ```
 
 | Stage | Output (C×H×W) | Params | MACs |
 |---|---|---|---|
-| Input | 1×28×28 | – | – |
-| Conv1 + ReLU | 8×26×26 | 80 | 48,672 |
-| MaxPool | 8×13×13 | – | – |
-| Conv2 + ReLU | 16×11×11 | 1,168 | 139,392 |
-| GAP | 16 | – | – |
+| Input (2px zero-padded) | 1×32×32 | – | – |
+| Conv1 + ReLU | 8×30×30 | 80 | 64,800 |
+| MaxPool | 8×15×15 | – | – |
+| Conv2 + ReLU | 16×13×13 | 1,168 | 194,688 |
+| GAP (13×13 = 169) | 16 | – | – |
 | FC | 10 | 170 | 160 |
-| **Total** | | **1,418** | **188,224** |
+| **Total** | | **1,418** | **259,648** |
 
 Worst-case accumulator magnitude is about 1.17 M (Conv2, 22 bits), so INT32
 accumulation cannot overflow. The analytical latency estimate is
-~188 k cycles ≈ 3.8 ms at 50 MHz with one MAC per cycle. This is an estimate,
+~260 k cycles ≈ 5.2 ms at 50 MHz with one MAC per cycle. This is an estimate,
 not a measurement.
 
 PyTorch implementation: [`sw/model/cnn.py`](sw/model/cnn.py).
@@ -239,10 +243,10 @@ the RTL arithmetic exactly. It is the golden reference for ModelSim.
 ```mermaid
 flowchart TB
     FSM["cnn_top FSM"] --> CE["conv_engine<br/>(1 MAC/cycle, reused)"]
-    IMG[("Input RAM<br/>784×8")] --> CE
+    IMG[("Input RAM<br/>1024×8 (1 M10K)")] --> CE
     W1[("Conv1/Conv2<br/>weight ROM")] --> CE
     CE --> RQ["requant + ReLU"] --> MP["maxpool"]
-    MP --> FM[("Feature RAM<br/>1352×8")] --> CE
+    MP --> FM[("Feature RAM<br/>1800×8 (2 M10K)")] --> CE
     RQ --> GAP["gap"] --> FC["fully_connected"] --> AM["argmax"]
     AM --> OUT["predicted_class, done"]
 ```
@@ -263,8 +267,8 @@ flowchart TB
 
 | # | Milestone | Status |
 |---|---|---|
-| 1 | Dataset download, inspection, preprocessing | ✅ Done (11/11 tests pass) |
-| 2 | PyTorch model and tensor shape verification | ✅ Done (14/14 tests pass), awaiting approval |
+| 1 | Dataset download, inspection, preprocessing (`32×32` zero-padded) | ✅ Done (12/12 tests pass) |
+| 2 | PyTorch model and tensor shape verification (`32×32` input) | ✅ Done (14/14 tests pass), awaiting approval |
 | 3 | FP32 training and evaluation | ⏳ Not started |
 | 4 | INT8 quantization and evaluation | ⏳ Not started |
 | 5 | `.mem` / `.mif` export | ⏳ Not started |

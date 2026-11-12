@@ -16,7 +16,7 @@ import sys
 import numpy as np
 import torch
 
-from sw.config import CLASS_NAMES, REPORTS_DIR, SEED
+from sw.config import CLASS_NAMES, IMG_C, IMG_H, IMG_W, REPORTS_DIR, SEED
 from sw.data.dataset import load_processed
 from sw.data.preprocess import int8_to_float
 from sw.model.cnn import SHAPES, FashionCNN, expected_macs, expected_param_counts
@@ -31,9 +31,9 @@ def main() -> int:
 
     # ---- real input batch from the processed dataset ------------------------
     d = load_processed()
-    x_np = int8_to_float(d["x_test"][:BATCH])[:, None, :, :]   # [N,28,28] -> [N,1,28,28]
+    x_np = int8_to_float(d["x_test"][:BATCH])[:, None, :, :]   # [N,32,32] -> [N,1,32,32]
     x = torch.from_numpy(x_np)
-    assert x.dtype == torch.float32 and tuple(x.shape) == (BATCH, 1, 28, 28)
+    assert x.dtype == torch.float32 and tuple(x.shape) == (BATCH, IMG_C, IMG_H, IMG_W)
 
     model = FashionCNN().eval()
 
