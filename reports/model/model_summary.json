@@ -1,0 +1,80 @@
+{
+  "shapes": {
+    "input": [
+      64,
+      1,
+      28,
+      28
+    ],
+    "conv1": [
+      64,
+      8,
+      26,
+      26
+    ],
+    "relu1": [
+      64,
+      8,
+      26,
+      26
+    ],
+    "pool1": [
+      64,
+      8,
+      13,
+      13
+    ],
+    "conv2": [
+      64,
+      16,
+      11,
+      11
+    ],
+    "relu2": [
+      64,
+      16,
+      11,
+      11
+    ],
+    "gap": [
+      64,
+      16
+    ],
+    "fc": [
+      64,
+      10
+    ]
+  },
+  "params": {
+    "conv1.weight": 72,
+    "conv1.bias": 8,
+    "conv2.weight": 1152,
+    "conv2.bias": 16,
+    "fc.weight": 160,
+    "fc.bias": 10
+  },
+  "total_params": 1418,
+  "size": {
+    "fp32_bytes": 5672,
+    "int8_weights_int32_bias_bytes": 1520
+  },
+  "macs": {
+    "conv1": 48672,
+    "conv2": 139392,
+    "fc": 160
+  },
+  "total_macs": 188224,
+  "gpu": {
+    "available": true,
+    "name": "NVIDIA GeForce RTX 5050 Laptop GPU",
+    "capability": "12.0",
+    "max_abs_diff_vs_cpu": 2.9802322387695312e-08
+  },
+  "env": {
+    "python": "3.12.0",
+    "torch": "2.11.0+cu128",
+    "cuda_runtime": "12.8",
+    "cudnn": 91900
+  },
+  "note": "Untrained model (random init, seed 42); this report verifies structure only."
+}

@@ -1,0 +1,7 @@
+# Python dependencies.
+# Milestone 1 only needs numpy + matplotlib.
+# PyTorch (Milestone 2+) is installed separately because the wheel depends on
+# CPU vs CUDA - see README "Environment setup".
+numpy>=1.26
+matplotlib>=3.8
+pytest>=8.0

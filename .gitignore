@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Data (regenerable). data/splits/ IS tracked for reproducibility.
+data/raw/
+data/processed/
+
+# Training artifacts
+checkpoints/
+
+# ModelSim / Questa
+sim/work/
+sim/**/work/
+*.wlf
+transcript
+modelsim.ini.bak
+
+# Quartus
+quartus/db/
+quartus/incremental_db/
+quartus/output_files/
+quartus/simulation/
+*.qws
+*.bak
