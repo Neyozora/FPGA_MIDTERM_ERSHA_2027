@@ -16,9 +16,10 @@ The ARM HPS is **not** used to run the network.
 
 Long-term target: LSI Design Contest 2027.
 
-> **Current status:** Milestones 1 (dataset) and 2 (PyTorch CNN & tensor shape
-> verification) are complete. Waiting for approval to start Milestone 3 (FP32
-> training). See the [milestone log](docs/development_plan.md).
+> **Current status:** Milestones 1 (dataset), 2 (PyTorch CNN & tensor shape
+> verification), and 3 (FP32 training & evaluation — **86.56% test accuracy**)
+> are complete. Waiting for approval to start Milestone 4 (INT8 quantization).
+> See the [milestone log](docs/development_plan.md).
 
 ---
 
@@ -87,7 +88,7 @@ fpga_midterm/
 │   ├── config.py                paths + numeric conventions (single source of truth)
 │   ├── data/                    download, IDX parser, preprocessing, split   (M1)
 │   ├── model/                   PyTorch CNN + shape checks                   (M2)
-│   ├── train/                   training / evaluation scripts                (M3, planned)
+│   ├── train/                   FP32 training, evaluation & confusion matrix (M3)
 │   ├── quant/                   PTQ / QAT, integer parameter extraction      (M4, planned)
 │   ├── export/                  .mem/.mif writers + read-back verification   (M5, planned)
 │   ├── refmodel/                bit-exact integer inference + golden vectors (M6, planned)
@@ -107,7 +108,7 @@ fpga_midterm/
 └── reports/
     ├── dataset/                 M1 statistics and figures
     ├── model/                   M2 shapes, parameter & MAC summary
-    ├── training/                M3 (planned)
+    ├── training/                M3 logs, curves, confusion matrix & report
     ├── quantization/            M4 (planned)
     ├── simulation/              M8–M9 (planned)
     └── synthesis/               M10 (planned, kept separate from simulation)
@@ -213,8 +214,33 @@ python -m sw.tests.test_m2_model     # 14 automated checks
 
 ## 6. Training
 
-*Milestone 3, not started.* Planned: FP32 training on the split above, with
-checkpoints, loss/accuracy logs, confusion matrix and per-class accuracy.
+Full report, per-class accuracy, and confusion matrix:
+[`reports/training/training_report.md`](reports/training/training_report.md).
+
+- **Training setup:** 120 epochs on NVIDIA GeForce RTX 5050 Laptop GPU (~100 s total),
+  batch size 128, AdamW + `OneCycleLR` (`max_lr = 0.01`), Kaiming normal
+  initialization, trained directly on the hardware-grid inputs
+  `x = (pixel >> 1) / 128` (`1 × 32 × 32`).
+- **Measured FP32 Baseline Results:**
+
+  | Split | Samples | Cross-Entropy Loss | FP32 Accuracy | Correct / Total |
+  |---|---|---|---|---|
+  | **Train** | 54,000 | 0.3458 | **87.69%** | 47,350 / 54,000 |
+  | **Validation** | 6,000 | 0.3588 | **87.27%** | 5,236 / 6,000 |
+  | **Test (official `t10k`)** | 10,000 | 0.3854 | **86.56%** | 8,656 / 10,000 |
+  | **Hardware test vectors** | 100 | – | **85.0%** | 85 / 100 |
+
+Reproduce:
+
+```powershell
+python -m sw.train.train --epochs 120   # train FP32 model -> checkpoints/fp32_best.pt
+python -m sw.train.evaluate             # evaluate train/val/test -> reports/training/
+python -m sw.tests.test_m3_train        # 4 automated checks
+```
+
+![Training curves](reports/training/training_curves.png)
+
+![Confusion matrix](reports/training/confusion_matrix.png)
 
 ## 7. Quantization
 
@@ -268,8 +294,8 @@ flowchart TB
 | # | Milestone | Status |
 |---|---|---|
 | 1 | Dataset download, inspection, preprocessing (`32×32` zero-padded) | ✅ Done (12/12 tests pass) |
-| 2 | PyTorch model and tensor shape verification (`32×32` input) | ✅ Done (14/14 tests pass), awaiting approval |
-| 3 | FP32 training and evaluation | ⏳ Not started |
+| 2 | PyTorch model and tensor shape verification (`32×32` input) | ✅ Done (14/14 tests pass) |
+| 3 | FP32 training and evaluation (**86.56%** test acc) | ✅ Done (4/4 tests pass), awaiting approval |
 | 4 | INT8 quantization and evaluation | ⏳ Not started |
 | 5 | `.mem` / `.mif` export | ⏳ Not started |
 | 6 | Python integer reference model | ⏳ Not started |

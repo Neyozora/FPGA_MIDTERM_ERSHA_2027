@@ -22,9 +22,9 @@ after it has been approved.
 
 | # | Milestone | Main deliverables | Exit criteria (all must pass) | Status |
 |---|---|---|---|---|
-| 1 | Dataset download, inspection, preprocessing | `sw/data/*`, `docs/preprocessing.md`, `docs/tensor_dimensions.md`, `reports/dataset/` | MD5s verified; 11/11 tests pass; split stratified and reproducible | **Done & approved** |
-| 2 | PyTorch model and shape verification | `sw/model/{cnn,summary}.py`, `sw/tests/test_m2_model.py`, `reports/model/` | shape assertions at every layer; parameter count = 1,418; 14/14 tests pass | **Done, awaiting approval** |
-| 3 | FP32 training and evaluation | `sw/train/*`, checkpoints, `reports/training/` | loss/acc logs, confusion matrix, per-class accuracy, test accuracy recorded | Not started |
+| 1 | Dataset download, inspection, preprocessing | `sw/data/*`, `docs/preprocessing.md`, `docs/tensor_dimensions.md`, `reports/dataset/` | MD5s verified; 12/12 tests pass; split stratified and reproducible | **Done & approved** |
+| 2 | PyTorch model and shape verification | `sw/model/{cnn,summary}.py`, `sw/tests/test_m2_model.py`, `reports/model/` | shape assertions at every layer; parameter count = 1,418; 14/14 tests pass | **Done & approved** |
+| 3 | FP32 training and evaluation | `sw/train/*`, `checkpoints/fp32_best.pt`, `reports/training/` | loss/acc logs, confusion matrix, per-class accuracy, test accuracy = 86.56% recorded; 4/4 tests pass | **Done, awaiting approval** |
 | 4 | INT8 quantization | `docs/quantization_spec.md`, `sw/quant/*`, `reports/quantization/` | measured INT8 vs FP32 accuracy; scales/shifts/rounding/saturation documented per layer | Not started |
 | 5 | `.mem` / `.mif` export | `sw/export/*`, `mem/*`, `docs/memory_map.md` | every exported value read back and compared bit-exactly | Not started |
 | 6 | Integer reference model | `sw/refmodel/*`, golden vectors | integer model accuracy matches the M4 INT8 accuracy; per-layer dumps for RTL | Not started |
@@ -87,3 +87,27 @@ after it has been approved.
   - GPU check on RTX 5050 (`sm_12.0`): max `|logits_gpu - logits_cpu| = 2.235e-08`.
 - Tests: `python -m sw.tests.test_m2_model`: 14 passed, 0 failed, 0 skipped.
   Full suite (`pytest sw/tests`): 26 passed.
+
+### Milestone 3: FP32 Training and Evaluation (2026-11-12)
+
+- Objective: train the FP32 baseline CNN on the 32×32 zero-padded hardware-grid
+  dataset (`x = (pixel >> 1) / 128`), log training/validation curves, save
+  checkpoints, and evaluate on train, validation, test (10,000 images), and
+  the 100 hardware test vectors.
+- Files: `sw/train/__init__.py`, `sw/train/metrics.py`, `sw/train/train.py`,
+  `sw/train/evaluate.py`, `sw/tests/test_m3_train.py`,
+  `reports/training/{training_log.csv,training_history.json,eval_metrics.json,training_report.md,training_curves.png,confusion_matrix.png}`.
+- Important implementation decisions:
+  - Initial run with default uniform initialization + `lr=3e-3` plateaued at
+    75.11% test accuracy because `conv2` inputs are pooled over 2×2 windows and
+    `gap` averages over `13×13 = 169` spatial locations, attenuating early
+    gradients.
+  - Switching to **Kaiming normal initialization** + **OneCycleLR (`max_lr=0.01`,
+    batch size 128, 120 epochs)** and preloading tensors onto the RTX 5050 GPU
+    cut epoch time to ~0.8s and lifted accuracy by **+11.45 percentage points**:
+    - **Train accuracy:** 87.69% (loss 0.3458)
+    - **Validation accuracy:** 87.27% (loss 0.3588, best at epoch 119)
+    - **Official 10k Test accuracy:** **86.56%** (loss 0.3854, 8,656 / 10,000)
+    - **100 Hardware Test Vectors accuracy:** **85.0%** (85 / 100)
+- Tests: `python -m sw.tests.test_m3_train`: 4 passed, 0 failed, 0 skipped.
+  Full suite (`pytest sw/tests`): 30 passed.
