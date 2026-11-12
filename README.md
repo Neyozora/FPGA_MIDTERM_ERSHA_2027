@@ -16,10 +16,10 @@ The ARM HPS is **not** used to run the network.
 
 Long-term target: LSI Design Contest 2027.
 
-> **Current status:** Milestones 1 (dataset), 2 (PyTorch CNN & tensor shape
-> verification), and 3 (FP32 training & evaluation — **86.56% test accuracy**)
-> are complete. Waiting for approval to start Milestone 4 (INT8 quantization).
-> See the [milestone log](docs/development_plan.md).
+> **Current status:** Milestones 1–4 are complete (FP32 test accuracy:
+> **86.56%**, QAT INT8 hardware-exact test accuracy: **85.87%**). Waiting for
+> approval to start Milestone 5 (`.mem` and `.mif` export). See the
+> [milestone log](docs/development_plan.md).
 
 ---
 
@@ -81,7 +81,7 @@ fpga_midterm/
 │   ├── development_plan.md      milestones, decisions, status log
 │   ├── preprocessing.md         dataset + input conversion spec        (M1)
 │   ├── tensor_dimensions.md     every tensor shape, MACs, memory sizes (M1)
-│   ├── quantization_spec.md     scales, shifts, rounding, saturation   (M4, planned)
+│   ├── quantization_spec.md     scales, shifts, rounding, saturation   (M4)
 │   ├── memory_map.md            .mem/.mif layouts and address maps     (M5, planned)
 │   └── rtl_architecture.md      block diagrams, FSM, timing            (M7, planned)
 ├── sw/                          Python package, run as `python -m sw.<module>`
@@ -89,7 +89,7 @@ fpga_midterm/
 │   ├── data/                    download, IDX parser, preprocessing, split   (M1)
 │   ├── model/                   PyTorch CNN + shape checks                   (M2)
 │   ├── train/                   FP32 training, evaluation & confusion matrix (M3)
-│   ├── quant/                   PTQ / QAT, integer parameter extraction      (M4, planned)
+│   ├── quant/                   PTQ / QAT, integer parameter extraction      (M4)
 │   ├── export/                  .mem/.mif writers + read-back verification   (M5, planned)
 │   ├── refmodel/                bit-exact integer inference + golden vectors (M6, planned)
 │   └── tests/                   automated tests per milestone
@@ -109,7 +109,7 @@ fpga_midterm/
     ├── dataset/                 M1 statistics and figures
     ├── model/                   M2 shapes, parameter & MAC summary
     ├── training/                M3 logs, curves, confusion matrix & report
-    ├── quantization/            M4 (planned)
+    ├── quantization/            M4 INT8 vs FP32 report, scales & plots
     ├── simulation/              M8–M9 (planned)
     └── synthesis/               M10 (planned, kept separate from simulation)
 ```
@@ -244,10 +244,34 @@ python -m sw.tests.test_m3_train        # 4 automated checks
 
 ## 7. Quantization
 
-*Milestone 4, not started.* Planned: symmetric INT8, INT32 bias, per-layer
-integer multiplier + arithmetic shift requantization (round half up, saturate
-to INT8). INT8 and FP32 accuracy will both be measured; no accuracy result is
-claimed before it is measured.
+Full specification: [`docs/quantization_spec.md`](docs/quantization_spec.md).
+Generated report: [`reports/quantization/quantization_report.md`](reports/quantization/quantization_report.md).
+
+- **Hardware-exact arithmetic:**
+  - Signed `INT8` weights (`[-127, 127]`) and activations (`[0, 127]` post-ReLU, `[-128, 127]` FC scores), zero point `0`.
+  - Signed `INT32` accumulators and biases (`s_b = s_in * s_w`).
+  - Dyadic requantization with 16-bit unsigned multiplier $M \in [1, 65535]$ (fits in a single Cyclone V 18×18 DSP block) and arithmetic shift $n$:
+    `y = sat8((int64(acc) * M + (1 << (n - 1))) >>> n)` (round-half-up).
+  - Global Average Pooling (`÷ 169`) folds the exact reciprocal and dynamic-range rescaling $s_{a2} \to s_{gap}$ into a single multiply-shift (`M_gap = 16780, n_gap = 19`).
+- **Measured FP32 vs INT8 Accuracy:**
+
+  | Split | FP32 Baseline | PTQ INT8 | QAT INT8 (Selected) | Delta vs FP32 | INT8 ↔ FP32 Agreement |
+  |---|---|---|---|---|---|
+  | **Train (54,000)** | 87.69% | – | **86.84%** | -0.85% | 95.65% |
+  | **Validation (6,000)** | 87.27% | 85.78% | **86.97%** | -0.30% | 96.00% |
+  | **Test (10,000)** | 86.56% | 85.02% | **85.87%** | **-0.69%** | **95.49%** |
+  | **HW Test Vectors (100)** | 85.0% | – | **82.0%** | -3.0% | 93.0% |
+
+Reproduce:
+
+```powershell
+python -m sw.quant.evaluate_quant    # PTQ + QAT + full evaluation -> checkpoints/int8_quantized.npz
+python -m sw.tests.test_m4_quant     # 7 automated checks
+```
+
+![Weight distributions](reports/quantization/weight_distributions.png)
+
+![INT8 Confusion Matrix](reports/quantization/int8_confusion_matrix.png)
 
 ## 8. Memory format
 
@@ -295,8 +319,8 @@ flowchart TB
 |---|---|---|
 | 1 | Dataset download, inspection, preprocessing (`32×32` zero-padded) | ✅ Done (12/12 tests pass) |
 | 2 | PyTorch model and tensor shape verification (`32×32` input) | ✅ Done (14/14 tests pass) |
-| 3 | FP32 training and evaluation (**86.56%** test acc) | ✅ Done (4/4 tests pass), awaiting approval |
-| 4 | INT8 quantization and evaluation | ⏳ Not started |
+| 3 | FP32 training and evaluation (**86.56%** test acc) | ✅ Done (4/4 tests pass) |
+| 4 | INT8 quantization and evaluation (**85.87%** QAT / **85.02%** PTQ test acc) | ✅ Done (7/7 tests pass), awaiting approval |
 | 5 | `.mem` / `.mif` export | ⏳ Not started |
 | 6 | Python integer reference model | ⏳ Not started |
 | 7 | Individual Verilog modules | ⏳ Not started |

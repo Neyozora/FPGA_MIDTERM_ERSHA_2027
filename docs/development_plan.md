@@ -24,8 +24,8 @@ after it has been approved.
 |---|---|---|---|---|
 | 1 | Dataset download, inspection, preprocessing | `sw/data/*`, `docs/preprocessing.md`, `docs/tensor_dimensions.md`, `reports/dataset/` | MD5s verified; 12/12 tests pass; split stratified and reproducible | **Done & approved** |
 | 2 | PyTorch model and shape verification | `sw/model/{cnn,summary}.py`, `sw/tests/test_m2_model.py`, `reports/model/` | shape assertions at every layer; parameter count = 1,418; 14/14 tests pass | **Done & approved** |
-| 3 | FP32 training and evaluation | `sw/train/*`, `checkpoints/fp32_best.pt`, `reports/training/` | loss/acc logs, confusion matrix, per-class accuracy, test accuracy = 86.56% recorded; 4/4 tests pass | **Done, awaiting approval** |
-| 4 | INT8 quantization | `docs/quantization_spec.md`, `sw/quant/*`, `reports/quantization/` | measured INT8 vs FP32 accuracy; scales/shifts/rounding/saturation documented per layer | Not started |
+| 3 | FP32 training and evaluation | `sw/train/*`, `checkpoints/fp32_best.pt`, `reports/training/` | loss/acc logs, confusion matrix, per-class accuracy, test accuracy = 86.56% recorded; 4/4 tests pass | **Done & approved** |
+| 4 | INT8 quantization | `docs/quantization_spec.md`, `sw/quant/*`, `checkpoints/int8_quantized.npz`, `reports/quantization/` | measured INT8 (85.87% QAT, 85.02% PTQ) vs FP32 (86.56%); scales/shifts/rounding/saturation documented per layer; 7/7 tests pass | **Done, awaiting approval** |
 | 5 | `.mem` / `.mif` export | `sw/export/*`, `mem/*`, `docs/memory_map.md` | every exported value read back and compared bit-exactly | Not started |
 | 6 | Integer reference model | `sw/refmodel/*`, golden vectors | integer model accuracy matches the M4 INT8 accuracy; per-layer dumps for RTL | Not started |
 | 7 | Verilog modules | `rtl/*.v` | lint/compile clean in ModelSim and Quartus Analysis & Synthesis | Not started |
@@ -111,3 +111,29 @@ after it has been approved.
     - **100 Hardware Test Vectors accuracy:** **85.0%** (85 / 100)
 - Tests: `python -m sw.tests.test_m3_train`: 4 passed, 0 failed, 0 skipped.
   Full suite (`pytest sw/tests`): 30 passed.
+
+### Milestone 4: INT8 Quantization and Evaluation (2026-11-13)
+
+- Objective: define the exact hardware fixed-point and INT8 quantization
+  specification (`docs/quantization_spec.md`), implement both Post-Training
+  Quantization (PTQ) and Quantization-Aware Training (QAT), and measure exact
+  integer accuracy against the FP32 baseline.
+- Files: `docs/quantization_spec.md`, `sw/quant/__init__.py`,
+  `sw/quant/quantize.py`, `sw/quant/evaluate_quant.py`,
+  `sw/tests/test_m4_quant.py`, `checkpoints/int8_quantized.npz`,
+  `reports/quantization/{quantization_report.md,quant_metrics.json,int8_confusion_matrix.png,weight_distributions.png}`.
+- Important implementation decisions:
+  1. **Exact GAP reciprocal + dynamic-range rescaling:** Averaging over
+     `13×13 = 169` reduces the peak activation magnitude from ~99 (`relu2`) to
+     ~12 (`gap`). Giving GAP its own calibrated output scale `s_gap` and folding
+     `s_a2 / (169 * s_gap)` into a single 16-bit multiplier + shift
+     (`M_gap = 16780, n_gap = 19`) recovered nearly 3 bits of INT8 dynamic range
+     entering the FC layer and lifted INT8 test accuracy from 83.97% to
+     **85.87%**.
+  2. **PTQ vs QAT:** PTQ alone achieved **85.02%** test accuracy (85.78% val);
+     20 epochs of QAT fine-tuning with STE fake-quantization improved INT8 test
+     accuracy to **85.87%** (86.97% val), within **0.69 percentage points** of
+     the FP32 baseline (86.56%), with **95.49% classification agreement**
+     between INT8 and FP32 across the 10,000 test images.
+- Tests: `python -m sw.tests.test_m4_quant`: 7 passed, 0 failed, 0 skipped.
+  Full suite (`pytest sw/tests`): 37 passed.

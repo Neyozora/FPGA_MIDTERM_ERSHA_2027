@@ -20,6 +20,7 @@ SPLITS_DIR = DATA_DIR / "splits"               # train/val split indices    (tra
 REPORTS_DIR = REPO_ROOT / "reports"
 DATASET_REPORT_DIR = REPORTS_DIR / "dataset"
 TRAINING_REPORT_DIR = REPORTS_DIR / "training"
+QUANT_REPORT_DIR = REPORTS_DIR / "quantization"
 CHECKPOINTS_DIR = REPO_ROOT / "checkpoints"
 
 # ---------------------------------------------------------------------------
