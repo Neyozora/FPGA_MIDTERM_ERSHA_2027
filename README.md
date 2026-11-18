@@ -1,5 +1,7 @@
 # CNN Image Classification Accelerators on Intel Cyclone V SoC FPGA (Project 1 & Project 2)
 
+**Author:** Ersha Anandita Larasati / `101022300072`
+
 An end-to-end hardware-software co-design repository implementing **two complete INT8 CNN image classifiers** on the **Terasic DE10-Standard** (Intel Cyclone V SX SoC `5CSXFC6D6F31C6`) targeting the **30th LSI Design Contest in Hokkaido (2027)**:
 
 | Feature | Project 1 / Method 1 (Baseline) | Project 2 / Method 2 (Parallel + HPS) |

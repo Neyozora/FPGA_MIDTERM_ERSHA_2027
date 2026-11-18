@@ -1,5 +1,6 @@
 # Method 2: Parallel 4-Layer INT8 CNN on CIFAR-10 (`32×32×3` RGB) + Cyclone V HPS & Live VGA/LCD
 
+**Author:** Ersha Anandita Larasati / `101022300072`  
 **Target Board:** Terasic DE10-Standard (`5CSXFC6D6F31C6`)  
 **Contest Target:** 30th LSI Design Contest in Hokkaido (2027) — *Class 1: Image Classification*
 
