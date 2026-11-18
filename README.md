@@ -373,11 +373,16 @@ python -m sw.tests.test_m9_cnn_top_sim
 
 ## 12. Quartus synthesis
 
-*Milestone 10, not started.*
+Synthesis report: [`reports/synthesis/synthesis_report.md`](reports/synthesis/synthesis_report.md).
+
+- **Quartus Prime 18.1 (`quartus/de10_standard.qpf`, `5CSXFC6D6F31C6`):**
+  - **Logic Utilization:** `804 / 41,910` ALMs (`1.92%` ≈ `2%`), `1,323` ALUTs, `646` registers
+  - **Memory & DSPs:** `31 / 553` M10K blocks (`5.61%`, `186,192` bits) + `22 / 112` DSP blocks (`19.64%` ≈ `20%`)
+  - **Timing (`CLOCK_50` = 50 MHz):** **PASS (0 violations)** — Slow `85°C` setup slack `+5.254 ns` (`Fmax = 67.82 MHz`), Slow `0°C` setup slack `+5.057 ns` (`Fmax = 66.92 MHz`)
 
 ## 13. Hardware deployment
 
-*Milestone 10, not started.*
+- **Physical DE10-Standard Verification (`DE-SoC [USB-1]`, JTAG ID `0x02D020DD`):** Programmed [`quartus/output_files/de10_standard.sof`](quartus/output_files/de10_standard.sof) (`checksum 0x015EDB97`), verified all 10 `SW[3:0]` ROM classes (`0 - P A S 0` .. `9 - P A S 9`), `SW[9]` cycle counter (`302978`), PS/2 mouse canvas, `640×480` VGA HUD, and live 272-bit row-burst USB-JTAG GUI (`python -m sw.gui_app`).
 
 ## 14. Milestone status
 
@@ -391,8 +396,8 @@ python -m sw.tests.test_m9_cnn_top_sim
 | 6 | Python integer reference model & golden vectors | ✅ Done (5/5 tests pass) |
 | 7 | Individual Verilog-2001 modules (`rtl/*.v`) | ✅ Done (4/4 tests pass; ModelSim `vlog`: 0 errors, 0 warnings) |
 | 8 | Individual ModelSim unit testbenches (`sim/tb/tb_*.v`) | ✅ Done (6/6 testbenches pass, 0 mismatches; 2/2 pytest checks pass) |
-| 9 | Complete CNN integration and verification (`tb_cnn_top.v`) | ✅ Done (11,731/11,731 elements match, 10/10 class agreement, 302,978 cycles; 2/2 pytest checks pass), awaiting approval |
-| 10 | Quartus synthesis and DE10-Standard testing | ⏳ Not started |
+| 9 | Complete CNN integration and verification (`tb_cnn_top.v`) | ✅ Done (11,731/11,731 elements match, 10/10 class agreement, 302,978 cycles; 2/2 pytest checks pass) |
+| 10 | Quartus synthesis and DE10-Standard testing | ✅ Done (`804` ALMs = `2%`, `31` M10Ks, `22` DSPs, `+5.057 ns` slack, live VGA + PS/2 + JTAG GUI) |
 
 Details, decisions and test logs: [docs/development_plan.md](docs/development_plan.md).
 
