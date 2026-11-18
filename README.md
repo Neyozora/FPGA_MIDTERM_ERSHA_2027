@@ -107,12 +107,12 @@ flowchart LR
 
 ## 2. Repository layout
 
-Directories marked *(planned)* are created at the milestone shown.
-
 ```text
 fpga_midterm/
-├── README.md                    this file
+├── README.md                    this file (Project 1 & Project 2 documentation)
+├── PROJECT1_METHOD1_SUMMARY.md  Project 1 (Fashion-MNIST) verified summary
 ├── requirements.txt             Python deps (PyTorch installed separately)
+├── run_demo.bat                 One-click launcher for Project 1 Python GUI
 ├── .gitignore
 ├── docs/
 │   ├── development_plan.md      milestones, decisions, status log
@@ -121,8 +121,10 @@ fpga_midterm/
 │   ├── quantization_spec.md     scales, shifts, rounding, saturation   (M4)
 │   ├── memory_map.md            .mem/.mif layouts and address maps     (M5)
 │   └── rtl_architecture.md      block diagrams, FSM, timing            (M7)
-├── sw/                          Python package, run as `python -m sw.<module>`
+├── sw/                          Project 1 Python package (`python -m sw.<module>`)
 │   ├── config.py                paths + numeric conventions (single source of truth)
+│   ├── gui_app.py               Tkinter drawing + photo upload + USB-JTAG GUI
+│   ├── jtag_bridge.py           272-bit row-burst `quartus_stp` JTAG bridge
 │   ├── data/                    download, IDX parser, preprocessing, split   (M1)
 │   ├── model/                   PyTorch CNN + shape checks                   (M2)
 │   ├── train/                   FP32 training, evaluation & confusion matrix (M3)
@@ -131,26 +133,33 @@ fpga_midterm/
 │   ├── refmodel/                bit-exact integer inference + golden vectors (M6)
 │   └── tests/                   automated tests per milestone
 ├── data/
-│   ├── raw/                     downloaded .gz files     (git-ignored)
-│   ├── processed/               regenerated .npz files   (git-ignored)
-│   └── splits/                  train/val indices        (tracked)
-├── checkpoints/                 trained models           (M3, git-ignored)
-├── mem/                         exported .mem / .mif     (M5)
-├── rtl/                         synthesizable Verilog-2001 (M7)
+│   ├── raw/                     downloaded .gz / CIFAR-10 files (git-ignored)
+│   ├── processed/               regenerated .npz files          (git-ignored)
+│   ├── splits/                  Project 1 train/val indices     (tracked)
+│   └── splits_m2/               Project 2 CIFAR-10 splits       (tracked)
+├── checkpoints/                 trained models                  (git-ignored)
+├── mem/                         Project 1 exported .mem / .mif  (M5)
+├── rtl/                         Project 1 Verilog-2001 RTL + VGA/PS2 (M7, M10)
 ├── sim/
-│   ├── tb/                      testbenches              (M8)
-│   ├── do/                      ModelSim .do scripts     (M8)
-│   └── vectors/                 golden input/output vectors (M6)
-├── quartus/                     DE10-Standard project, .qsf, .sdc (M10, planned)
-└── reports/
-    ├── dataset/                 M1 statistics and figures
-    ├── model/                   M2 shapes, parameter & MAC summary
-    ├── training/                M3 logs, curves, confusion matrix & report
-    ├── quantization/            M4 INT8 vs FP32 report, scales & plots
-    ├── export/                  M5 .mem/.mif verification summary
-    ├── refmodel/                M6 integer reference model & golden vectors report
-    ├── simulation/              M8–M9 ModelSim verification logs & reports
-    └── synthesis/               M10 (planned, kept separate from simulation)
+│   ├── tb/                      unit & cnn_top testbenches      (M8–M9)
+│   ├── do/                      ModelSim .do scripts            (M8–M9)
+│   └── vectors/                 golden input/output vectors     (M6)
+├── quartus/                     Project 1 DE10-Standard .qpf, .qsf, .sdc (M10, complete)
+├── reports/
+│   ├── dataset/                 M1 statistics and figures
+│   ├── model/                   M2 shapes, parameter & MAC summary
+│   ├── training/                M3 logs, curves, confusion matrix & report
+│   ├── quantization/            M4 INT8 vs FP32 report, scales & plots
+│   ├── export/                  M5 .mem/.mif verification summary
+│   ├── refmodel/                M6 integer reference model & golden vectors report
+│   ├── simulation/              M8–M9 ModelSim verification logs & reports
+│   └── synthesis/               M10 Quartus synthesis & DE10-Standard report (complete)
+├── OUTPUT/                      Hardware, VGA, HPS LCD, Pin Planner & Synthesis photos
+│   ├── JUDUL 1/                 Project 1 (Fashion-MNIST) screenshots & board photos
+│   └── JUDUL 2/                 Project 2 (CIFAR-10 + HPS LCD) screenshots & board photos
+└── PROJECT JUDUL  2/            Project 2 / Method 2 (CIFAR-10 RGB + 36-MAC + HPS)
+    ├── method2/                 Full Method 2 (`sw_m2/`, `rtl_m2/`, `sim_m2/`, `mem_m2/`, `hps_m2/`, `quartus_m2/`, `reports_m2/`)
+    └── *.md                     LSI Design Contest 2027 rules, dataset & HPS guides
 ```
 
 ## 3. Environment setup
