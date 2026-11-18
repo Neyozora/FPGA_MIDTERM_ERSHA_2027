@@ -9,7 +9,7 @@ An end-to-end hardware-software co-design repository implementing **two complete
 | **INT8 Test Accuracy** | `85.87%` *(Fashion-MNIST)* | **`83.54%`** *(CIFAR-10)* / `84.00%` *(100 HW vectors)* |
 | **Hardware Engine** | 1-MAC/cycle (`302,978` cycles = `6.06 ms` / `165 FPS`) | **2-Line Buffer + `4×9` MACs (`202,538` cycles = `4.05 ms` / `246.9 FPS`)** |
 | **ARM HPS & Displays** | FPGA-only + Grayscale VGA + PS/2 + JTAG | **ARM Cortex-A9 HPS (`0xFF200000`) + 24-bit RGB VGA + `128×64` HPS LCD + JTAG** |
-| **Documentation** | Sections 1–14 below | **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** & **[`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md)** |
+| **Documentation** | Sections 1–14 below | **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** & **[`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md)** |
 
 ---
 
@@ -19,7 +19,7 @@ Python/PyTorch is used only for dataset preparation, training, quantization, wei
 
 > **Project 1 Status:** Complete (FP32 test accuracy: **86.56%**, QAT INT8 test accuracy: **85.87%**, ModelSim 18.1 **0 mismatches** across **11,731** elements, **302,978** cycles/image, Quartus synthesis **804 ALMs (`2%`)**, deployed on DE10-Standard). See [milestone log](docs/development_plan.md).
 
-> **Project 2 / Method 2 Status:** Complete & Deployed on DE10-Standard! (`83.54%` INT8 on CIFAR-10, **`100/100`** ModelSim bit-exact parity, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, full ARM HPS `0xFF200000` + 24-bit RGB VGA + `128×64` HPS LCD). See **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md)**.
+> **Project 2 / Method 2 Status:** Complete & Deployed on DE10-Standard! (`83.54%` INT8 on CIFAR-10, **`100/100`** ModelSim bit-exact parity, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, full ARM HPS `0xFF200000` + 24-bit RGB VGA + `128×64` HPS LCD). See **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md)**.
 
 ---
 
@@ -406,7 +406,7 @@ Details, decisions and test logs: [docs/development_plan.md](docs/development_pl
 
 ## 15. Method 2 Upgrade — CIFAR-10 RGB 4-Layer Parallel CNN + HPS LCD/VGA
 
-> All Method 1 files and sections (Sections 1–14) remain **100% untouched**. Method 2 is implemented in parallel (`sw_m2/`, `rtl_m2/`, `sim_m2/`, `mem_m2/`, `hps_m2/`, `quartus_m2/`, `reports_m2/`) and archived in [`ANOTHER_METHODS/method2/`](ANOTHER_METHODS/method2/README.md).
+> All Method 1 files and sections (Sections 1–14) remain **100% untouched**. Method 2 is implemented in parallel (`sw_m2/`, `rtl_m2/`, `sim_m2/`, `mem_m2/`, `hps_m2/`, `quartus_m2/`, `reports_m2/`) and archived in [`PROJECT%20JUDUL%20%202/method2/`](PROJECT%20JUDUL%20%202/method2/README.md).
 
 ### 15.1 Method 1 vs. Method 2 Comparison
 
@@ -438,16 +438,16 @@ Details, decisions and test logs: [docs/development_plan.md](docs/development_pl
 | **Test (`10,000`)** | `83.49%` | `83.61%` | **`83.54%`** | **`+0.05%`** |
 | **HW Test Vectors (`100`)** | – | – | **`84.00%`** | – |
 
-![CIFAR-10 100 Hardware Test Vectors](ANOTHER_METHODS/method2/reports_m2/hw_vectors_100_grid_m2.png)
+![CIFAR-10 100 Hardware Test Vectors](PROJECT%20JUDUL%20%202/method2/reports_m2/hw_vectors_100_grid_m2.png)
 *Figure 15.1 — 10×10 grid of all 100 balanced CIFAR-10 hardware test vectors (`32×32×3` RGB, first 10 test images per class from `airplane` to `truck`), quantized with zero-gate MSB-flip (`q_in = pixel - 128 ∈ [-128, 127]`).*
 
-![Method 2 INT8 Confusion Matrix](ANOTHER_METHODS/method2/reports_m2/int8_confusion_matrix_m2.png)
+![Method 2 INT8 Confusion Matrix](PROJECT%20JUDUL%20%202/method2/reports_m2/int8_confusion_matrix_m2.png)
 *Figure 15.2 — Pure INT8 Confusion Matrix across all 10,000 official CIFAR-10 test images (**83.54%** accuracy). Highest per-class accuracies are `automobile` (`934/1,000` = `93.4%`), `ship` (`914/1,000` = `91.4%`), `truck` (`888/1,000` = `88.8%`), and `frog` (`881/1,000` = `88.1%`), while visually similar `cat` (`684/1,000`) and `dog` (`740/1,000`) account for most cross-confusions.*
 
-![Method 2 Weight Distributions](ANOTHER_METHODS/method2/reports_m2/weight_distributions_m2.png)
+![Method 2 Weight Distributions](PROJECT%20JUDUL%20%202/method2/reports_m2/weight_distributions_m2.png)
 *Figure 15.3 — Weight distribution histograms comparing **FP32 (BatchNorm-Folded)** (blue) vs. **Dequantized Per-Channel INT8** (orange) across `CONV1`, `CONV2`, `CONV3`, `CONV4`, and `FC`. The near-complete overlap confirms minimal quantization distortion (`+0.05%` test delta vs. FP32).*
 
-![Method 1 vs Method 2 Performance](ANOTHER_METHODS/method2/reports_m2/method1_vs_method2_chart.png)
+![Method 1 vs Method 2 Performance](PROJECT%20JUDUL%20%202/method2/reports_m2/method1_vs_method2_chart.png)
 *Figure 15.4 — Hardware performance comparison at `50 MHz`: Method 2 cuts latency from `302,978` cycles (`165.0 FPS`) down to **`202,538` cycles (`246.9 FPS`)** — **1.50× faster** despite running a **43.1× larger** 4-layer CNN (`61,162` vs. `1,418` parameters) via the 2-line buffer and `4×9 = 36` parallel MAC array.*
 
 ### 15.3 Parallel Hardware Architecture (`rtl_m2/`)
@@ -484,5 +484,5 @@ On DE10-Standard Angstrom Linux (`COM7`, `115200` baud):
 cd /home/xuser/hps_cifar10_lcd && ./hps_vga_bridge
 ```
 
-- **Full Documentation & Reports:** [`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md), [`method2_complete_report.pdf`](ANOTHER_METHODS/method2/method2_complete_report.pdf), [`laporan_uts_fpga_ersha.pdf`](ANOTHER_METHODS/method2/laporan_uts_fpga_ersha.pdf), [`lecturer_qa_100.pdf`](ANOTHER_METHODS/method2/lecturer_qa_100.pdf).
+- **Full Documentation & Reports:** [`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md), [`method2_complete_report.pdf`](PROJECT%20JUDUL%20%202/method2/method2_complete_report.pdf), [`laporan_uts_fpga_ersha.pdf`](PROJECT%20JUDUL%20%202/method2/laporan_uts_fpga_ersha.pdf), [`lecturer_qa_100.pdf`](PROJECT%20JUDUL%20%202/method2/lecturer_qa_100.pdf).
 
