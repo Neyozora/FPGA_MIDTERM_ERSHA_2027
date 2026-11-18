@@ -37,3 +37,4 @@ quartus_m2/simulation/
 quartus_m2/hps_cnn_qsys/
 *.qws
 *.bak
+*.typ
