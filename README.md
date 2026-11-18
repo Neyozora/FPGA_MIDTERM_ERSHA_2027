@@ -433,6 +433,14 @@ Details, decisions and test logs: [docs/development_plan.md](docs/development_pl
 | **Test (`10,000`)** | `83.49%` | `83.61%` | **`83.54%`** | **`+0.05%`** |
 | **HW Test Vectors (`100`)** | – | – | **`84.00%`** | – |
 
+![CIFAR-10 100 Hardware Test Vectors](ANOTHER_METHODS/method2/reports_m2/hw_vectors_100_grid_m2.png)
+
+![Method 2 INT8 Confusion Matrix](ANOTHER_METHODS/method2/reports_m2/int8_confusion_matrix_m2.png)
+
+![Method 2 Weight Distributions](ANOTHER_METHODS/method2/reports_m2/weight_distributions_m2.png)
+
+![Method 1 vs Method 2 Performance](ANOTHER_METHODS/method2/reports_m2/method1_vs_method2_chart.png)
+
 ### 15.3 Parallel Hardware Architecture (`rtl_m2/`)
 
 - **2-Line Shift-Register Line Buffer (`conv_engine_m2.v`):** Streams pixels in raster order through two `32`-deep line buffers (`lb0`, `lb1`), exposing all `9` pixels of the `3×3` window simultaneously every cycle with automatic `PAD=1` zero-padding.
