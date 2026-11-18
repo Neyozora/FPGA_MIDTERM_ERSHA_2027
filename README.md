@@ -486,3 +486,55 @@ cd /home/xuser/hps_cifar10_lcd && ./hps_vga_bridge
 
 - **Full Documentation & Reports:** [`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md), [`method2_complete_report.pdf`](PROJECT%20JUDUL%20%202/method2/method2_complete_report.pdf), [`laporan_uts_fpga_ersha.pdf`](PROJECT%20JUDUL%20%202/method2/laporan_uts_fpga_ersha.pdf), [`lecturer_qa_100.pdf`](PROJECT%20JUDUL%20%202/method2/lecturer_qa_100.pdf).
 
+### 15.6 Repository Layout (`PROJECT JUDUL  2`)
+
+```text
+PROJECT JUDUL  2/
+├── README.md                            Method 2 overview & strategy notes
+├── 00_LSI_2027_HOKKAIDO_RULES_AND_STRATEGY.md
+├── 01_CIFAR10_CIFAR100_DATASETS.md
+├── 02_HARDWARE_METHODS_FOR_LSI2027.md
+├── 03_HPS_OPENOCD_VS_SD_CARD.md
+├── hps_openocd_starter/                 Bare-metal OpenOCD & /dev/mem C starter
+└── method2/                             Complete Method 2 (CIFAR-10 RGB + HPS + VGA/LCD)
+    ├── sw_m2/                           Python pipeline (`python -m sw_m2.<module>`)
+    │   ├── config.py                    CIFAR-10 paths & MSB-flip constants
+    │   ├── preprocess.py                45k/5k/10k split + 100 balanced HW vectors
+    │   ├── model.py                     4-layer CNN + BatchNorm folding + Per-Channel QAT
+    │   ├── train_qat.py                 80-epoch Float+BN + 25-epoch QAT + INT8 eval
+    │   ├── export_mem.py                72-bit weight banks & 53-bit qparam exporter
+    │   ├── gui_app_m2.py                Tkinter RGB GUI + ModelSim + FPGA JTAG bridge
+    │   ├── jtag_bridge_m2.py            272-bit RGB row-burst `quartus_stp` JTAG driver
+    │   ├── gen_hps_lcd_header.py        4x4 Bayer-dithered bitmap generator for HPS LCD
+    │   ├── gen_report_plots.py          CIFAR-10 ROM samples, CM, & Method 1 vs 2 chart
+    │   ├── gen_m2_full_plots.py         100-vector RGB grid & FP32 vs INT8 weight histograms
+    │   └── send_vga_bridge_to_hps.py    UART COM7 uploader & compiler for DE10-Standard HPS
+    ├── rtl_m2/                          Synthesizable Verilog-2001 RTL
+    │   ├── conv_engine_m2.v             2-line shift-register buffer + 4x9 MAC array (Po=4)
+    │   ├── maxpool_m2.v                 4-bank parallel 2x2 stride-2 MaxPooling
+    │   ├── gap_fc_argmax_m2.v           0-DSP 8x8 GAP (>> 6) + FC (64->10) + Argmax
+    │   ├── cnn_top_m2.v                 Top-level 4-layer CNN + 4-bank ping-pong BRAMs
+    │   ├── vga_cnn_hud_m2.v             640x480 @ 60 Hz 24-bit RGB CIFAR-10 VGA HUD
+    │   └── de10_standard_top_m2.v       DE10-Standard wrapper + HPS AXI + JTAG + LED/HEX
+    ├── sim_m2/                          ModelSim 18.1 verification
+    │   ├── tb_cnn_top_m2.v              100-image bit-exact testbench (1,000/1,000 scores)
+    │   ├── tb_gui_single_m2.v           Single-image GUI-triggered RTL testbench
+    │   └── vectors/                     `hw_images_100.mem` & expected INT8 scores/preds
+    ├── mem_m2/                          Exported `.mem` weight, qparam, and 10-image ROMs
+    ├── hps_m2/                          DE10-Standard Angstrom Linux C applications
+    │   ├── main_cifar10_vga_bridge.c    Synchronized HPS 128x64 LCD + VGA AXI (0xFF200000)
+    │   ├── main_cifar10_lcd.c           Standalone animated 128x64 LCD CIFAR-10 demo
+    │   ├── cifar10_lcd_data.h           Embedded Bayer-dithered bitmaps & INT8 scores
+    │   └── hw_images_100.bin            307,200-byte binary payload for 100-image slideshow
+    ├── quartus_m2/                      Quartus Prime 18.1 & Qsys project
+    │   ├── de10_standard_m2.qpf/.qsf    5CSXFC6D6F31C6 project & pin assignments
+    │   ├── de10_standard_m2.sdc         50 MHz CLOCK_50 timing constraints
+    │   ├── build_hps_qsys.tcl           Qsys generator for `hps_0.h2f_lw_axi_master`
+    │   └── hps_cnn_qsys.qsys            Cyclone V HPS + Avalon-MM bridge system
+    ├── reports_m2/                      Metrics JSONs, plots, and Method 1 vs 2 report
+    ├── method2_complete_report.pdf      Complete English technical report
+    ├── laporan_uts_fpga_ersha.pdf       Complete Indonesian UTS report
+    ├── lecturer_qa_100.pdf              100 Lecturer defense Q&A (Easy to Hard)
+    └── THEORY_EXPLANATION_AI_PROMPT.md  Standalone AI prompt for theory explanations
+```
+
