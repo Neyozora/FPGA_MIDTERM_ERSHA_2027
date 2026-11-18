@@ -561,6 +561,15 @@ PROJECT JUDUL  2/
 ![Project 1 VGA Monitor Output](OUTPUT/JUDUL%201/PYTHON%20GUI%20MONITOR%20VGA%20FPGA.png)
 *Keterangan: Tampilan langsung monitor VGA `640×480` dari FPGA (`DE10-STANDARD FPGA CNN ACCEL`) yang berhasil mengklasifikasikan foto tas yang diunggah sebagai **`WINNER: 8 BAG`** dengan diagram batang 10 kelas.*
 
+![Project 1 Trouser GUI](OUTPUT/JUDUL%201/CELANA%20CLASS%201/gui%20python.png)
+*Keterangan: Tampilan GUI Python (`sw/gui_app.py`) saat memilih sampel citra **Trouser (Kelas 1)** dan melakukan sinkronisasi 2 arah dengan sakelar papan DE10-Standard.*
+
+![Project 1 Trouser Board Switch](OUTPUT/JUDUL%201/CELANA%20CLASS%201/Switch%20untuk%20mengganti%20deteksi.png)
+*Keterangan: Papan fisik DE10-Standard dengan posisi sakelar `SW[3:0] = 0001` (`1`) untuk memilih kelas **Trouser**, menampilkan **`1 - P A S 1`** pada `HEX5..0` dan menyalakan **`LEDR1`**.*
+
+![Project 1 Trouser VGA Output](OUTPUT/JUDUL%201/CELANA%20CLASS%201/Trouser%20di%20output%20vga%20fpga.png)
+*Keterangan: Tampilan langsung monitor VGA `640×480` untuk kelas **Trouser** (`WINNER: 1 TROUSER`) yang digerakkan langsung oleh `board_img_rom` pada FPGA.*
+
 ---
 
 ### 16.2 Project 2 (Method 2 — CIFAR-10 RGB 4-Layer Parallel CNN + HPS)
