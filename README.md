@@ -538,3 +538,44 @@ PROJECT JUDUL  2/
     └── THEORY_EXPLANATION_AI_PROMPT.md  Standalone AI prompt for theory explanations
 ```
 
+
+
+---
+
+## 16. Hardware & Software Documentation Gallery (`OUTPUT/`)
+
+### 16.1 Project 1 (Method 1 — Fashion-MNIST Baseline)
+
+![Project 1 Quartus Synthesis](OUTPUT/JUDUL%201/SYNTHESIS.png)
+*Keterangan: Hasil kompilasi & sintesis Quartus Prime 18.1 untuk Project 1 (`de10_standard_top` pada `5CSXFC6D6F31C6`) yang menunjukkan penggunaan resource ringan (`804` ALMs = `2%`, `31` M10K BRAMs, `22` DSPs) dan Timing Closure `50 MHz` tanpa pelanggaran.*
+
+![Project 1 Pin Planner](OUTPUT/JUDUL%201/PIN%20PLANNER.png)
+*Keterangan: Konfigurasi Pin Planner Quartus untuk `CLOCK_50`, `SW[9:0]`, `KEY[3:0]`, `LEDR[9:0]`, `HEX0..5`, `PS2_CLK/DAT`, dan pin DAC Video VGA (`VGA_R/G/B`, `VGA_HS/VS/CLK`).*
+
+![Project 1 Python GUI](OUTPUT/JUDUL%201/PYTHON%20GUI%20IN%20LAPTOP.png)
+*Keterangan: Antarmuka GUI Python (`python -m sw.gui_app`) di laptop yang terhubung via USB-JTAG (`altsource_probe` 272-bit) untuk menggambar langsung atau memilih citra uji Fashion-MNIST.*
+
+![Project 1 Upload Photo](OUTPUT/JUDUL%201/UPLOAD%20PHOTO.png)
+*Keterangan: Proses unggah foto tas (*handbag*) dari galeri ke GUI Python untuk dikonversi menjadi `32×32` INT8 dan dikirim ke FPGA secara real-time.*
+
+![Project 1 VGA Monitor Output](OUTPUT/JUDUL%201/PYTHON%20GUI%20MONITOR%20VGA%20FPGA.png)
+*Keterangan: Tampilan langsung monitor VGA `640×480` dari FPGA (`DE10-STANDARD FPGA CNN ACCEL`) yang berhasil mengklasifikasikan foto tas yang diunggah sebagai **`WINNER: 8 BAG`** dengan diagram batang 10 kelas.*
+
+---
+
+### 16.2 Project 2 (Method 2 — CIFAR-10 RGB 4-Layer Parallel CNN + HPS)
+
+![Project 2 Quartus Synthesis](OUTPUT/JUDUL%202/SYNTHESIS%20COMPILATION.png)
+*Keterangan: Hasil kompilasi penuh Quartus Prime 18.1 untuk Project 2 (`de10_standard_top_m2` + sistem Qsys HPS `hps_cnn_qsys`), mencakup `4×9` MAC paralel, ping-pong M10K BRAM, dan jembatan Lightweight AXI (`0xFF200000`).*
+
+![Project 2 Pin Planner](OUTPUT/JUDUL%202/PIN%20PLANNER.png)
+*Keterangan: Pemetaan pin pada Pin Planner Quartus untuk Project 2 termasuk pin `HPS_DDR3_*`, VGA 24-bit RGB, sakelar `SW[9:0]`, `KEY[3:0]`, `LEDR[9:0]`, dan `HEX0..5`.*
+
+![Project 2 Python GUI](OUTPUT/JUDUL%202/GUI%20PYTHON.png)
+*Keterangan: GUI Python Method 2 (`python -m sw_m2.gui_app_m2`) yang terintegrasi dengan simulasi RTL ModelSim 18.1 dan jembatan USB-JTAG langsung ke papan DE10-Standard.*
+
+![Project 2 VGA RGB Output](OUTPUT/JUDUL%202/OUTPUT%20VGA.png)
+*Keterangan: Tampilan langsung monitor VGA `640×480` (`DE10-STD M2 CIFAR10 RGB CNN`) yang menampilkan citra warna 24-bit RGB **`6 FROG`** dari CIFAR-10 beserta grafik skor 10 kelas dan banner pemenang.*
+
+![Project 2 HPS LCD and 7-Segment](OUTPUT/JUDUL%202/HPS%20LCD%20AND%20SEVEN%20SEGMENT.png)
+*Keterangan: Papan fisik Terasic DE10-Standard saat menjalankan mode *Switch-Follow* (`SW[8]=0`): `SW[3:0]=0110` (`6`) membuat `LEDR6` menyala, `HEX5..0` menampilkan `000006`, dan layar LCD Grafis HPS `128×64` menampilkan citra dither `48×48` Frog, **`SW=6 -> P=6`**, **`FROG`**, batang skor, serta **`4.05ms 247FPS`** secara sinkron dengan monitor VGA.*
