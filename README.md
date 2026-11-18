@@ -1,35 +1,25 @@
-# Two-Layer CNN Image Classification Accelerator on Intel Cyclone V FPGA
+# CNN Image Classification Accelerators on Intel Cyclone V SoC FPGA (Project 1 & Project 2)
 
-An educational, end-to-end FPGA CNN inference project. A small two-layer CNN
-classifies Fashion-MNIST, and the inference itself runs in Verilog RTL on a
-**Terasic DE10-Standard** (Intel Cyclone V SoC: physical board device
-`5CSXFC6D6F31C6N` and spec device `5CSEBA6U23I7` are both supported).
-Python/PyTorch is used only for:
+An end-to-end hardware-software co-design repository implementing **two complete INT8 CNN image classifiers** on the **Terasic DE10-Standard** (Intel Cyclone V SX SoC `5CSXFC6D6F31C6`) targeting the **30th LSI Design Contest in Hokkaido (2027)**:
 
-- dataset preparation
-- training
-- quantization
-- weight export
-- bit-exact software reference models
+| Feature | Project 1 / Method 1 (Baseline) | Project 2 / Method 2 (Parallel + HPS) |
+|---|---|---|
+| **Dataset** | Fashion-MNIST (`32×32×1` padded Grayscale) | **CIFAR-10 (`32×32×3` Native RGB)** |
+| **CNN Topology** | 2-Layer Sequential (`1,418` params) | **4-Layer Parallel (`61,162` params)** |
+| **INT8 Test Accuracy** | `85.87%` *(Fashion-MNIST)* | **`83.54%`** *(CIFAR-10)* / `84.00%` *(100 HW vectors)* |
+| **Hardware Engine** | 1-MAC/cycle (`302,978` cycles = `6.06 ms` / `165 FPS`) | **2-Line Buffer + `4×9` MACs (`202,538` cycles = `4.05 ms` / `246.9 FPS`)** |
+| **ARM HPS & Displays** | FPGA-only + Grayscale VGA + PS/2 + JTAG | **ARM Cortex-A9 HPS (`0xFF200000`) + 24-bit RGB VGA + `128×64` HPS LCD + JTAG** |
+| **Documentation** | Sections 1–14 below | **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** & **[`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md)** |
 
-The ARM HPS is **not** used to run the network.
+---
 
-Long-term target: LSI Design Contest 2027.
+## Project 1 (Method 1): Two-Layer Fashion-MNIST Baseline
 
-> **Current status:** Milestones 1–9 are complete (FP32 test accuracy:
-> **86.56%**, QAT INT8 hardware-exact test accuracy: **85.87%**, `.mem`/`.mif`
-> files exported, Python integer reference model + golden vectors verified, all
-> 7 Verilog-2001 RTL modules implemented, all 6 unit testbenches verified, and
-> complete end-to-end `cnn_top.v` inference verified in ModelSim 18.1 with **0
-> mismatches** across all **11,731** intermediate elements, **100.0%
-> classification agreement** across all 10 classes, and **302,978** measured
-> clock cycles per image). Waiting for approval to start Milestone 10 (Quartus
-> Prime synthesis and DE10-Standard implementation). See the
-> [milestone log](docs/development_plan.md).
+Python/PyTorch is used only for dataset preparation, training, quantization, weight export, and bit-exact software reference models. In Project 1, the ARM HPS is **not** used to run the network (see **Project 2 / Method 2** in [Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga) for full ARM HPS + CIFAR-10 RGB integration).
 
-> **Project 2 / Method 2 Upgrade (Complete & Deployed on DE10-Standard!):**
-> Upgraded to a **4-layer parallel INT8 CNN (`36` MACs/cycle, `61,162` params)** on **CIFAR-10 (`32×32×3` RGB)** achieving **`83.54%` INT8 test accuracy**, **`100/100` ModelSim bit-exact parity**, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, and full **Cyclone V ARM HPS (`0xFF200000`) + 24-bit RGB VGA HUD + `128×64` HPS Graphic LCD** integration.
-> See **[Section 15: Method 2 Upgrade](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md)**.
+> **Project 1 Status:** Complete (FP32 test accuracy: **86.56%**, QAT INT8 test accuracy: **85.87%**, ModelSim 18.1 **0 mismatches** across **11,731** elements, **302,978** cycles/image, Quartus synthesis **804 ALMs (`2%`)**, deployed on DE10-Standard). See [milestone log](docs/development_plan.md).
+
+> **Project 2 / Method 2 Status:** Complete & Deployed on DE10-Standard! (`83.54%` INT8 on CIFAR-10, **`100/100`** ModelSim bit-exact parity, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, full ARM HPS `0xFF200000` + 24-bit RGB VGA + `128×64` HPS LCD). See **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md)**.
 
 ---
 
