@@ -21,6 +21,24 @@ Python/PyTorch is used only for dataset preparation, training, quantization, wei
 
 > **Project 1 Status:** Complete (FP32 test accuracy: **86.56%**, QAT INT8 test accuracy: **85.87%**, ModelSim 18.1 **0 mismatches** across **11,731** elements, **302,978** cycles/image, Quartus synthesis **804 ALMs (`2%`)**, deployed on DE10-Standard). See [milestone log](docs/development_plan.md).
 
+### Project 1 Quick Hyperlinks & How to Run
+
+| Category | Direct GitHub Hyperlinks |
+|---|---|
+| **Quartus (`.qsf` / `.qpf` / Synthesis)** | [`quartus/de10_standard.qsf`](quartus/de10_standard.qsf) · [`quartus/de10_standard.qpf`](quartus/de10_standard.qpf) · [`reports/synthesis/synthesis_report.md`](reports/synthesis/synthesis_report.md) |
+| **Training Results & Methods** | [`PROJECT1_METHOD1_SUMMARY.md`](PROJECT1_METHOD1_SUMMARY.md) · [`reports/quantization/quantization_report.md`](reports/quantization/quantization_report.md) · [`reports/training/`](reports/training/) · [`docs/quantization_spec.md`](docs/quantization_spec.md) |
+| **Python CNN & GUI** | [`sw/gui_app.py`](sw/gui_app.py) · [`sw/jtag_bridge.py`](sw/jtag_bridge.py) · [`sw/model/cnn.py`](sw/model/cnn.py) · [`sw/train/train.py`](sw/train/train.py) · [`sw/export/export_mem.py`](sw/export/export_mem.py) |
+| **Verilog RTL & ModelSim** | [`rtl/cnn_top.v`](rtl/cnn_top.v) · [`rtl/de10_standard_top.v`](rtl/de10_standard_top.v) · [`reports/simulation/cnn_top_verification_report.md`](reports/simulation/cnn_top_verification_report.md) |
+
+```powershell
+# How to Run Project 1 (Python GUI + Live DE10-Standard FPGA JTAG & VGA):
+python -m sw.gui_app
+# (or double-click run_demo.bat)
+
+# Flash Project 1 Bitstream onto DE10-Standard:
+C:\intelFPGA_lite\18.1\quartus\bin64\quartus_pgm.exe -c "DE-SoC [USB-1]" -m JTAG -o "p;quartus\output_files\de10_standard.sof@2"
+```
+
 > **Project 2 / Method 2 Status:** Complete & Deployed on DE10-Standard! (`83.54%` INT8 on CIFAR-10, **`100/100`** ModelSim bit-exact parity, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, full ARM HPS `0xFF200000` + 24-bit RGB VGA + `128×64` HPS LCD). See **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md)**.
 
 ---
