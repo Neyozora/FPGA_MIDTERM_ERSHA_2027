@@ -26,11 +26,11 @@ after it has been approved.
 | 2 | PyTorch model and shape verification | `sw/model/{cnn,summary}.py`, `sw/tests/test_m2_model.py`, `reports/model/` | shape assertions at every layer; parameter count = 1,418; 14/14 tests pass | **Done & approved** |
 | 3 | FP32 training and evaluation | `sw/train/*`, `checkpoints/fp32_best.pt`, `reports/training/` | loss/acc logs, confusion matrix, per-class accuracy, test accuracy = 86.56% recorded; 4/4 tests pass | **Done & approved** |
 | 4 | INT8 quantization | `docs/quantization_spec.md`, `sw/quant/*`, `checkpoints/int8_quantized.npz`, `reports/quantization/` | measured INT8 (85.87% QAT, 85.02% PTQ) vs FP32 (86.56%); scales/shifts/rounding/saturation documented per layer; 7/7 tests pass | **Done & approved** |
-| 5 | `.mem` / `.mif` export | `sw/export/*`, `mem/*`, `docs/memory_map.md`, `reports/export/` | every exported value read back and compared bit-exactly; 6/6 tests pass | **Done, awaiting approval** |
-| 6 | Integer reference model | `sw/refmodel/*`, golden vectors | integer model accuracy matches the M4 INT8 accuracy; per-layer dumps for RTL | Not started |
-| 7 | Verilog modules | `rtl/*.v` | lint/compile clean in ModelSim and Quartus Analysis & Synthesis | Not started |
-| 8 | Unit testbenches | `sim/tb/tb_*.v`, `sim/do/*.do` | every module matches the golden vectors, 0 mismatches | Not started |
-| 9 | Full CNN integration | `rtl/cnn_top.v`, `tb_cnn_top.v` | bit-exact intermediate tensors and class agreement on all test vectors; cycle count measured | Not started |
+| 5 | `.mem` / `.mif` export | `sw/export/*`, `mem/*`, `docs/memory_map.md`, `reports/export/` | every exported value read back and compared bit-exactly; 6/6 tests pass | **Done & approved** |
+| 6 | Integer reference model | `sw/refmodel/*`, `sim/vectors/*`, `reports/refmodel/` | integer model accuracy matches M4 INT8 (85.87%) bit-for-bit across all 10k images; per-layer golden `.mem` dumps; 5/5 tests pass | **Done & approved** |
+| 7 | Verilog modules | `rtl/*.v`, `docs/rtl_architecture.md`, `sw/tests/test_m7_rtl.py` | all 7 modules compile clean in ModelSim 18.1 (`vlog`: 0 errors, 0 warnings); 4/4 tests pass | **Done & approved** |
+| 8 | Unit testbenches | `sim/tb/tb_*.v`, `sim/do/*.do`, `reports/simulation/unit_*` | all 6 unit testbenches match golden vectors in ModelSim 18.1, 0 mismatches across 31,828 checks; 2/2 pytest checks pass | **Done & approved** |
+| 9 | Full CNN integration | `rtl/cnn_top.v`, `sim/tb/tb_cnn_top.v`, `sim/do/run_tb_cnn_top.do`, `reports/simulation/cnn_top_*` | bit-exact intermediate tensors (11,731/11,731) and 100% class/score agreement on multi-image sweep; 302,978 cycles/image measured; 2/2 pytest checks pass | **Done, awaiting approval** |
 | 10 | Quartus + DE10-Standard | `quartus/*`, `reports/synthesis/` | resource, Fmax and critical-path reports; on-board demo | Not started |
 
 ## Planned decisions (to be confirmed at the relevant milestone)
@@ -165,3 +165,120 @@ after it has been approved.
      feature maps (`(y << 5) | x` for `32×32` input images).
 - Tests: `python -m sw.tests.test_m5_export`: 6 passed, 0 failed, 0 skipped.
   Full suite (`pytest sw/tests`): 43 passed.
+
+### Milestone 6: Python Integer Reference Model & Golden Vectors (2026-11-13)
+
+- Objective: create an independent, pure-integer reference model that loads
+  parameters directly from the exported `.mem` files in `mem/`, simulates the
+  exact arithmetic of every RTL module (`conv_engine`, `relu`, `maxpool`, `gap`,
+  `fully_connected`, `argmax`), verifies bit-exact parity against Milestone 4
+  across all 10,000 test images, and exports golden `.mem` verification vectors
+  into `sim/vectors/` for ModelSim.
+- Files: `sw/refmodel/__init__.py`, `sw/refmodel/int8_ref_model.py`,
+  `sw/refmodel/generate_vectors.py`, `sw/tests/test_m6_refmodel.py`,
+  `sim/vectors/*.mem`, `sim/vectors/vectors_manifest.json`,
+  `reports/refmodel/refmodel_report.md`.
+- Important implementation decisions:
+  1. **Zero floating-point / PyTorch dependency:** `int8_ref_model.py` uses only
+     NumPy integer dtypes (`int8`, `int32`, `int64`) and loads weights, biases,
+     and `(M, n)` parameters directly from `mem/*.mem`.
+  2. **Explicit hardware address loop + vectorized batch model:** Implemented
+     both `infer_single_hw_loop` (nested loops using the exact 1D hardware
+     memory addresses) and `infer_batch_int8` (pure-integer vectorized NumPy),
+     confirming 100% bit-exact parity between them and against Milestone 4 across
+     all 10,000 test images (**85.87%** accuracy, `8,587 / 10,000`).
+  3. **Pre-ReLU and post-ReLU golden vectors:** Exported both `img0_conv1_req.mem` /
+     `img0_conv2_req.mem` (signed `INT8` in `[-128, 127]`) and
+     `img0_relu1_out.mem` / `img0_relu2_out.mem` (`INT8` in `[0, 127]`), proving
+     exhaustively that `relu_int8(requantize_signed_int8(acc))` is bit-identical
+     to fused ReLU-requantization.
+- Tests: `python -m sw.tests.test_m6_refmodel`: 5 passed, 0 failed, 0 skipped.
+  Full suite (`pytest sw/tests`): 48 passed.
+
+### Milestone 7: Individual Verilog-2001 RTL Modules (2026-11-13)
+
+- Objective: implement all 7 required synthesizable Verilog-2001 modules
+  (`conv_engine.v`, `relu.v`, `maxpool.v`, `gap.v`, `fully_connected.v`,
+  `argmax.v`, `cnn_top.v`), document the microarchitecture and M10K BRAM timing
+  in `docs/rtl_architecture.md`, and verify clean compilation in ModelSim 18.1.
+- Files: `docs/rtl_architecture.md`, `rtl/conv_engine.v`, `rtl/relu.v`,
+  `rtl/maxpool.v`, `rtl/gap.v`, `rtl/fully_connected.v`, `rtl/argmax.v`,
+  `rtl/cnn_top.v`, `sw/tests/test_m7_rtl.py`.
+- Important implementation decisions:
+  1. **Synchronous 1-cycle M10K BRAM pipeline (`S_PRE -> S_PIPE -> S_MAC -> S_REQUANT`):**
+     Every memory-reading module registers its outgoing read address (`in_rd_addr`,
+     `w_rd_addr`, `b_rd_addr`) and includes an explicit 1-cycle `S_PIPE` fill
+     state so synchronous M10K BRAM read data (`in_rd_data`) aligns cycle-for-cycle
+     with the accumulator without combinational memory read paths.
+  2. **Multiplier-free weight address stepping in `conv_engine.v`:** Because
+     `conv1_weights.mem` and `conv2_weights.mem` are packed in `(oc -> ic -> ky -> kx)`
+     order, the weight address for each output channel `oc` is a contiguous
+     sequential range `[w_base_oc, w_base_oc + cfg_in_c*9 - 1]`, stepped via an
+     incrementing pointer `w_req_ptr`.
+  3. **Reusable `conv_engine.v` and `relu.v`:** Both Conv1 (`1×32×32 → 8×30×30`)
+     and Conv2 (`8×15×15 → 16×13×13`) share a single `conv_engine` + `relu`
+     instance in `cnn_top.v`, multiplexed via `is_conv2`.
+- Verification:
+  - ModelSim Intel FPGA Edition 18.1 (`vlog 10.5b`): compiled all 7 modules with
+    **0 errors, 0 warnings**.
+  - Tests: `python -m sw.tests.test_m7_rtl`: 4 passed, 0 failed, 0 skipped.
+    Full suite (`pytest sw/tests`): 52 passed.
+
+### Milestone 8: Individual ModelSim Unit Testbenches (2026-11-14)
+
+- Objective: create self-checking ModelSim unit testbenches (`sim/tb/tb_*.v`)
+  and `.do` scripts (`sim/do/*.do`) for each individual processing module
+  (`conv_engine`, `relu`, `maxpool`, `gap`, `fully_connected`, `argmax`), run
+  them in ModelSim Intel FPGA Edition 18.1 against the golden vectors from
+  Milestone 6, and verify 0 mismatches.
+- Files: `sim/tb/{tb_conv_engine,tb_relu,tb_maxpool,tb_gap,tb_fully_connected,tb_argmax}.v`,
+  `sim/do/{run_tb_conv_engine,run_tb_relu,run_tb_maxpool,run_tb_gap,run_tb_fully_connected,run_tb_argmax,run_all_unit_tbs}.do`,
+  `reports/simulation/{unit_tests_transcript.log,unit_verification_report.md}`,
+  `sw/tests/test_m8_unit_sim.py`.
+- Bug caught and fixed during simulation:
+  - In `rtl/conv_engine.v` (`S_REQUANT`), `out_valid <= 1'b1;` was followed in
+    the same clock cycle by `if (out_ready) begin out_valid <= 1'b0; ...`, which
+    suppressed the `out_valid` strobe when `out_ready == 1'b1`. Removing the
+    redundant `out_valid <= 1'b0` in `S_REQUANT` resolved the issue immediately.
+- Measured ModelSim 18.1 Unit Results:
+  - `tb_conv_engine`: Conv1 = `7,200` outputs (`86,401` cycles), Conv2 = `2,704`
+    outputs (`202,801` cycles), **0 mismatches** on both `INT32` accumulators
+    and `INT8` requantized outputs.
+  - `tb_relu`: `10,160` checks (`256` exhaustive `[-128..+127]` + `7,200` ReLU1
+    + `2,704` ReLU2, `10,160` cycles), **0 mismatches**.
+  - `tb_maxpool`: `1,804` checks (`4` directed signed negative/zero/positive +
+    `1,800` Pool1 outputs, `10,801` cycles), **0 mismatches**.
+  - `tb_gap`: `16` channels (`2,753` cycles), **0 mismatches** on both `INT32`
+    sums and `INT8` outputs.
+  - `tb_fully_connected`: `10` classes (`191` cycles), **0 mismatches** on both
+    `INT32` accumulators and `INT8` scores.
+  - `tb_argmax`: `4` test cases (`13` cycles/run), **0 mismatches** (golden
+    scores, tie-breaking to lowest index, all-negative scores, class-9 winner).
+- Tests: `python -m sw.tests.test_m8_unit_sim`: 2 passed, 0 failed, 0 skipped.
+  Full suite (`pytest sw/tests`): 54 passed.
+
+### Milestone 9: Complete CNN Integration & ModelSim Verification (2026-11-14)
+
+- Objective: verify the complete integrated `cnn_top.v` accelerator in ModelSim
+  Intel FPGA Edition 18.1 across all intermediate on-chip M10K BRAM buffers and
+  across a multi-image 10-class sweep, comparing every output against the
+  Python integer reference model and measuring exact inference latency in clock
+  cycles.
+- Files: `sim/tb/tb_cnn_top.v`, `sim/do/run_tb_cnn_top.do`,
+  `reports/simulation/{cnn_top_transcript.log,cnn_top_verification_report.md}`,
+  `sw/tests/test_m9_cnn_top_sim.py`.
+- Measured ModelSim 18.1 Integration Results:
+  1. **Phase 1 (Image 0 Layer-by-Layer Buffer Verification):**
+     - `conv1_relu_ram` (`7,200 × 8b`): `0` mismatches (`86,404` cycles)
+     - `pool1_ram` (`1,800 × 8b`): `0` mismatches (`10,803` cycles)
+     - `conv2_relu_ram` (`2,704 × 8b`): `0` mismatches (`202,804` cycles)
+     - `gap_ram` (`16 × 8b`): `0` mismatches (`2,755` cycles)
+     - `fc_score_ram` (`10 × 8b`): `0` mismatches (`193` cycles)
+     - `predicted_class` (`1 × 4b`): `exp = 0, got = 0` (`14` cycles)
+     - **Total Image 0 Intermediate Elements Verified:** `11,731 / 11,731` (`0` mismatches, `Max Abs Error = 0`)
+     - **Measured End-to-End Inference Latency:** **`302,978` clock cycles** (`6.060 ms` @ 50 MHz)
+  2. **Phase 2 (10-Class Multi-Image End-to-End Sweep, `Vec 0, 10, ..., 90`):**
+     - **Classification Agreement vs Python Ref:** `10 / 10` (`100.0%`)
+     - **FC Class Score Mismatches:** `0 / 100` (`Max Abs Error = 0`)
+- Tests: `python -m sw.tests.test_m9_cnn_top_sim`: 2 passed, 0 failed, 0 skipped.
+  Full suite (`pytest sw/tests`): 56 passed.

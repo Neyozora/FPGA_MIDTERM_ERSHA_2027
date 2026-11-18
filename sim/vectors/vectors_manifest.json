@@ -1,0 +1,317 @@
+{
+  "img0_expected_class": 0,
+  "img0_ground_truth_label": 0,
+  "img0_class_name": "T-shirt/top",
+  "img0_fc_acc_int32": [
+    586,
+    -2487,
+    -447,
+    -219,
+    -1690,
+    -2209,
+    -175,
+    -3145,
+    -657,
+    -1272
+  ],
+  "img0_fc_scores_int8": [
+    7,
+    -28,
+    -5,
+    -2,
+    -19,
+    -25,
+    -2,
+    -36,
+    -7,
+    -14
+  ],
+  "img0_gap_sum_int32": [
+    601,
+    615,
+    1010,
+    1085,
+    803,
+    290,
+    97,
+    1482,
+    1418,
+    567,
+    895,
+    2343,
+    644,
+    1552,
+    1241,
+    908
+  ],
+  "img0_gap_int8": [
+    19,
+    20,
+    32,
+    35,
+    26,
+    9,
+    3,
+    47,
+    45,
+    18,
+    29,
+    75,
+    21,
+    50,
+    40,
+    29
+  ],
+  "hw100_accuracy": 0.82,
+  "hw100_correct": 82,
+  "test10k_accuracy": 0.8587,
+  "test10k_correct": 8587,
+  "test10k_total": 10000,
+  "test10k_runtime_sec": 8.453,
+  "m6_vs_m4_bit_exact_10k": true,
+  "loop_vs_batch_bit_exact_100": true,
+  "stage_stats_10k": {
+    "input_int8": {
+      "shape_per_image": [
+        1,
+        32,
+        32
+      ],
+      "dtype": "int8",
+      "min_10k": 0,
+      "max_10k": 127,
+      "img0_min": 0,
+      "img0_max": 127
+    },
+    "conv1_acc_int32": {
+      "shape_per_image": [
+        8,
+        30,
+        30
+      ],
+      "dtype": "int32",
+      "min_10k": -34468,
+      "max_10k": 4097,
+      "img0_min": -30956,
+      "img0_max": 2708
+    },
+    "conv1_req_int8": {
+      "shape_per_image": [
+        8,
+        30,
+        30
+      ],
+      "dtype": "int8",
+      "min_10k": -128,
+      "max_10k": 127,
+      "img0_min": -128,
+      "img0_max": 120
+    },
+    "relu1_int8": {
+      "shape_per_image": [
+        8,
+        30,
+        30
+      ],
+      "dtype": "int8",
+      "min_10k": 0,
+      "max_10k": 127,
+      "img0_min": 0,
+      "img0_max": 120
+    },
+    "pool1_int8": {
+      "shape_per_image": [
+        8,
+        15,
+        15
+      ],
+      "dtype": "int8",
+      "min_10k": 0,
+      "max_10k": 127,
+      "img0_min": 0,
+      "img0_max": 120
+    },
+    "conv2_acc_int32": {
+      "shape_per_image": [
+        16,
+        13,
+        13
+      ],
+      "dtype": "int32",
+      "min_10k": -41058,
+      "max_10k": 14037,
+      "img0_min": -24252,
+      "img0_max": 8593
+    },
+    "conv2_req_int8": {
+      "shape_per_image": [
+        16,
+        13,
+        13
+      ],
+      "dtype": "int8",
+      "min_10k": -128,
+      "max_10k": 127,
+      "img0_min": -128,
+      "img0_max": 127
+    },
+    "relu2_int8": {
+      "shape_per_image": [
+        16,
+        13,
+        13
+      ],
+      "dtype": "int8",
+      "min_10k": 0,
+      "max_10k": 127,
+      "img0_min": 0,
+      "img0_max": 127
+    },
+    "gap_sum_int32": {
+      "shape_per_image": [
+        16
+      ],
+      "dtype": "int32",
+      "min_10k": 0,
+      "max_10k": 6657,
+      "img0_min": 97,
+      "img0_max": 2343
+    },
+    "gap_int8": {
+      "shape_per_image": [
+        16
+      ],
+      "dtype": "int8",
+      "min_10k": 0,
+      "max_10k": 127,
+      "img0_min": 3,
+      "img0_max": 75
+    },
+    "fc_acc_int32": {
+      "shape_per_image": [
+        10
+      ],
+      "dtype": "int32",
+      "min_10k": -13506,
+      "max_10k": 4190,
+      "img0_min": -3145,
+      "img0_max": 586
+    },
+    "fc_scores_int8": {
+      "shape_per_image": [
+        10
+      ],
+      "dtype": "int8",
+      "min_10k": -128,
+      "max_10k": 48,
+      "img0_min": -36,
+      "img0_max": 7
+    }
+  },
+  "exported_vectors": [
+    {
+      "name": "img0_input",
+      "file": "img0_input.mem",
+      "depth": 1024,
+      "width_bits": 8,
+      "min": 0,
+      "max": 127
+    },
+    {
+      "name": "img0_conv1_acc",
+      "file": "img0_conv1_acc.mem",
+      "depth": 7200,
+      "width_bits": 32,
+      "min": -30956,
+      "max": 2708
+    },
+    {
+      "name": "img0_conv1_req",
+      "file": "img0_conv1_req.mem",
+      "depth": 7200,
+      "width_bits": 8,
+      "min": -128,
+      "max": 120
+    },
+    {
+      "name": "img0_relu1_out",
+      "file": "img0_relu1_out.mem",
+      "depth": 7200,
+      "width_bits": 8,
+      "min": 0,
+      "max": 120
+    },
+    {
+      "name": "img0_pool1_out",
+      "file": "img0_pool1_out.mem",
+      "depth": 1800,
+      "width_bits": 8,
+      "min": 0,
+      "max": 120
+    },
+    {
+      "name": "img0_conv2_acc",
+      "file": "img0_conv2_acc.mem",
+      "depth": 2704,
+      "width_bits": 32,
+      "min": -24252,
+      "max": 8593
+    },
+    {
+      "name": "img0_conv2_req",
+      "file": "img0_conv2_req.mem",
+      "depth": 2704,
+      "width_bits": 8,
+      "min": -128,
+      "max": 127
+    },
+    {
+      "name": "img0_relu2_out",
+      "file": "img0_relu2_out.mem",
+      "depth": 2704,
+      "width_bits": 8,
+      "min": 0,
+      "max": 127
+    },
+    {
+      "name": "img0_gap_sum",
+      "file": "img0_gap_sum.mem",
+      "depth": 16,
+      "width_bits": 32,
+      "min": 97,
+      "max": 2343
+    },
+    {
+      "name": "img0_gap_out",
+      "file": "img0_gap_out.mem",
+      "depth": 16,
+      "width_bits": 8,
+      "min": 3,
+      "max": 75
+    },
+    {
+      "name": "img0_fc_acc",
+      "file": "img0_fc_acc.mem",
+      "depth": 10,
+      "width_bits": 32,
+      "min": -3145,
+      "max": 586
+    },
+    {
+      "name": "img0_fc_scores",
+      "file": "img0_fc_scores.mem",
+      "depth": 10,
+      "width_bits": 8,
+      "min": -36,
+      "max": 7
+    },
+    {
+      "name": "img0_expected_class",
+      "file": "img0_expected_class.mem",
+      "depth": 1,
+      "width_bits": 8,
+      "min": 0,
+      "max": 0
+    }
+  ]
+}

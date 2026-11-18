@@ -22,8 +22,11 @@ DATASET_REPORT_DIR = REPORTS_DIR / "dataset"
 TRAINING_REPORT_DIR = REPORTS_DIR / "training"
 QUANT_REPORT_DIR = REPORTS_DIR / "quantization"
 EXPORT_REPORT_DIR = REPORTS_DIR / "export"
+REFMODEL_REPORT_DIR = REPORTS_DIR / "refmodel"
 CHECKPOINTS_DIR = REPO_ROOT / "checkpoints"
 MEM_DIR = REPO_ROOT / "mem"
+SIM_DIR = REPO_ROOT / "sim"
+SIM_VECTORS_DIR = SIM_DIR / "vectors"
 
 # ---------------------------------------------------------------------------
 # Hardware Target (Terasic DE10-Standard / Intel Cyclone V SoC)

@@ -11,12 +11,17 @@ data/processed/
 # Training artifacts
 checkpoints/
 
-# ModelSim / Questa
+# ModelSim / Questa / DESim
+work/
+work_m2/
 sim/work/
 sim/**/work/
+desim_cnn/sim/work/
+desim_cnn/sim/mem/
 *.wlf
 transcript
 modelsim.ini.bak
+*.ppm
 
 # Quartus
 quartus/db/

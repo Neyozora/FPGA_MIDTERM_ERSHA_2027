@@ -1,0 +1,145 @@
+# do sim/do/run_all_unit_tbs.do
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 19:58:17 on Nov 14,2026
+# vlog -work work rtl/relu.v rtl/maxpool.v rtl/gap.v rtl/argmax.v rtl/fully_connected.v rtl/conv_engine.v rtl/cnn_top.v sim/tb/tb_relu.v sim/tb/tb_maxpool.v sim/tb/tb_gap.v sim/tb/tb_fully_connected.v sim/tb/tb_argmax.v sim/tb/tb_conv_engine.v 
+# -- Compiling module relu
+# -- Compiling module maxpool
+# -- Compiling module gap
+# -- Compiling module argmax
+# -- Compiling module fully_connected
+# -- Compiling module conv_engine
+# -- Compiling module cnn_top
+# -- Compiling module tb_relu
+# -- Compiling module tb_maxpool
+# -- Compiling module tb_gap
+# -- Compiling module tb_fully_connected
+# -- Compiling module tb_argmax
+# -- Compiling module tb_conv_engine
+# 
+# Top level modules:
+# 	cnn_top
+# 	tb_relu
+# 	tb_maxpool
+# 	tb_gap
+# 	tb_fully_connected
+# 	tb_argmax
+# 	tb_conv_engine
+# End time: 19:58:17 on Nov 14,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_relu 
+# Start time: 19:58:17 on Nov 14,2026
+# Loading work.tb_relu
+# Loading work.relu
+# =================================================================
+# [TB_RELU] Checks: 10160 (256 exhaustive + 7200 ReLU1 + 2704 ReLU2)
+# [TB_RELU] Cycles: 10160 | Max Abs Error: 0 | Mismatches: 0
+# [TB_RELU] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_relu.v(154)
+#    Time: 203270 ns  Iteration: 1  Instance: /tb_relu
+# Break in Module tb_relu at sim/tb/tb_relu.v line 154
+# Stopped at sim/tb/tb_relu.v line 154
+# End time: 19:58:17 on Nov 14,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_maxpool 
+# Start time: 19:58:17 on Nov 14,2026
+# Loading work.tb_maxpool
+# Loading work.maxpool
+# =================================================================
+# [TB_MAXPOOL] Checks: 1804 (4 directed signed + 1800 Pool1 golden)
+# [TB_MAXPOOL] Pool1 Cycles: 10801 | Max Abs Error: 0 | Mismatches: 0
+# [TB_MAXPOOL] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_maxpool.v(198)
+#    Time: 216631 ns  Iteration: 0  Instance: /tb_maxpool
+# Break in Module tb_maxpool at sim/tb/tb_maxpool.v line 198
+# Stopped at sim/tb/tb_maxpool.v line 198
+# End time: 19:58:18 on Nov 14,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_gap 
+# Start time: 19:58:18 on Nov 14,2026
+# Loading work.tb_gap
+# Loading work.gap
+# [TB_GAP] ch= 0 | sum_exp=  601 sum_got=  601 | out_exp= 19 out_got= 19
+# [TB_GAP] ch= 1 | sum_exp=  615 sum_got=  615 | out_exp= 20 out_got= 20
+# [TB_GAP] ch= 2 | sum_exp= 1010 sum_got= 1010 | out_exp= 32 out_got= 32
+# [TB_GAP] ch= 3 | sum_exp= 1085 sum_got= 1085 | out_exp= 35 out_got= 35
+# [TB_GAP] ch= 4 | sum_exp=  803 sum_got=  803 | out_exp= 26 out_got= 26
+# [TB_GAP] ch= 5 | sum_exp=  290 sum_got=  290 | out_exp=  9 out_got=  9
+# [TB_GAP] ch= 6 | sum_exp=   97 sum_got=   97 | out_exp=  3 out_got=  3
+# [TB_GAP] ch= 7 | sum_exp= 1482 sum_got= 1482 | out_exp= 47 out_got= 47
+# [TB_GAP] ch= 8 | sum_exp= 1418 sum_got= 1418 | out_exp= 45 out_got= 45
+# [TB_GAP] ch= 9 | sum_exp=  567 sum_got=  567 | out_exp= 18 out_got= 18
+# [TB_GAP] ch=10 | sum_exp=  895 sum_got=  895 | out_exp= 29 out_got= 29
+# [TB_GAP] ch=11 | sum_exp= 2343 sum_got= 2343 | out_exp= 75 out_got= 75
+# [TB_GAP] ch=12 | sum_exp=  644 sum_got=  644 | out_exp= 21 out_got= 21
+# [TB_GAP] ch=13 | sum_exp= 1552 sum_got= 1552 | out_exp= 50 out_got= 50
+# [TB_GAP] ch=14 | sum_exp= 1241 sum_got= 1241 | out_exp= 40 out_got= 40
+# [TB_GAP] ch=15 | sum_exp=  908 sum_got=  908 | out_exp= 29 out_got= 29
+# =================================================================
+# [TB_GAP] Channels Checked: 16 | Cycles: 2753 | Max Abs Error: 0 | Mismatches: 0
+# [TB_GAP] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_gap.v(123)
+#    Time: 55131 ns  Iteration: 0  Instance: /tb_gap
+# Break in Module tb_gap at sim/tb/tb_gap.v line 123
+# Stopped at sim/tb/tb_gap.v line 123
+# End time: 19:58:18 on Nov 14,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_fully_connected 
+# Start time: 19:58:18 on Nov 14,2026
+# Loading work.tb_fully_connected
+# Loading work.fully_connected
+# [TB_FC] class=0 | acc_exp=   586 acc_got=   586 | score_exp=   7 score_got=   7
+# [TB_FC] class=1 | acc_exp= -2487 acc_got= -2487 | score_exp= -28 score_got= -28
+# [TB_FC] class=2 | acc_exp=  -447 acc_got=  -447 | score_exp=  -5 score_got=  -5
+# [TB_FC] class=3 | acc_exp=  -219 acc_got=  -219 | score_exp=  -2 score_got=  -2
+# [TB_FC] class=4 | acc_exp= -1690 acc_got= -1690 | score_exp= -19 score_got= -19
+# [TB_FC] class=5 | acc_exp= -2209 acc_got= -2209 | score_exp= -25 score_got= -25
+# [TB_FC] class=6 | acc_exp=  -175 acc_got=  -175 | score_exp=  -2 score_got=  -2
+# [TB_FC] class=7 | acc_exp= -3145 acc_got= -3145 | score_exp= -36 score_got= -36
+# [TB_FC] class=8 | acc_exp=  -657 acc_got=  -657 | score_exp=  -7 score_got=  -7
+# [TB_FC] class=9 | acc_exp= -1272 acc_got= -1272 | score_exp= -14 score_got= -14
+# =================================================================
+# [TB_FC] Classes Checked: 10 | Cycles: 191 | Max Abs Error: 0 | Mismatches: 0
+# [TB_FC] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_fully_connected.v(136)
+#    Time: 3891 ns  Iteration: 0  Instance: /tb_fully_connected
+# Break in Module tb_fully_connected at sim/tb/tb_fully_connected.v line 136
+# Stopped at sim/tb/tb_fully_connected.v line 136
+# End time: 19:58:18 on Nov 14,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_argmax 
+# Start time: 19:58:18 on Nov 14,2026
+# Loading work.tb_argmax
+# Loading work.argmax
+# [TB_ARGMAX] Image0 Golden Scores     | exp_cls=0 got_cls=0 | exp_max=   7 got_max=   7 | cycles=13
+# [TB_ARGMAX] Tie-Break Lowest Idx     | exp_cls=1 got_cls=1 | exp_max=  25 got_max=  25 | cycles=13
+# [TB_ARGMAX] All-Negative Scores      | exp_cls=4 got_cls=4 | exp_max= -12 got_max= -12 | cycles=13
+# [TB_ARGMAX] Last Class Index 9       | exp_cls=9 got_cls=9 | exp_max= 127 got_max= 127 | cycles=13
+# =================================================================
+# [TB_ARGMAX] Cases Checked: 4 | Cycles/Run: 13 | Mismatches: 0
+# [TB_ARGMAX] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_argmax.v(131)
+#    Time: 1250 ns  Iteration: 1  Instance: /tb_argmax
+# Break in Module tb_argmax at sim/tb/tb_argmax.v line 131
+# Stopped at sim/tb/tb_argmax.v line 131
+# End time: 19:58:18 on Nov 14,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_conv_engine 
+# Start time: 19:58:18 on Nov 14,2026
+# Loading work.tb_conv_engine
+# Loading work.conv_engine
+# =================================================================
+# [TB_CONV_ENGINE] Conv1: 7200 outputs | Cycles: 86401 | Max Abs Err: 0 | Mismatches: 0
+# [TB_CONV_ENGINE] Conv2: 2704 outputs | Cycles: 202801 | Max Abs Err: 0 | Mismatches: 0
+# [TB_CONV_ENGINE] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_conv_engine.v(236)
+#    Time: 5784151 ns  Iteration: 0  Instance: /tb_conv_engine
+# Break in Module tb_conv_engine at sim/tb/tb_conv_engine.v line 236
+# Stopped at sim/tb/tb_conv_engine.v line 236
+# End time: 19:58:19 on Nov 14,2026, Elapsed time: 0:00:01
+# Errors: 0, Warnings: 0

@@ -16,10 +16,15 @@ The ARM HPS is **not** used to run the network.
 
 Long-term target: LSI Design Contest 2027.
 
-> **Current status:** Milestones 1–5 are complete (FP32 test accuracy:
-> **86.56%**, QAT INT8 hardware-exact test accuracy: **85.87%**, all `.mem` and
-> `.mif` memory files exported and read-back verified). Waiting for approval to
-> start Milestone 6 (Python integer reference model). See the
+> **Current status:** Milestones 1–9 are complete (FP32 test accuracy:
+> **86.56%**, QAT INT8 hardware-exact test accuracy: **85.87%**, `.mem`/`.mif`
+> files exported, Python integer reference model + golden vectors verified, all
+> 7 Verilog-2001 RTL modules implemented, all 6 unit testbenches verified, and
+> complete end-to-end `cnn_top.v` inference verified in ModelSim 18.1 with **0
+> mismatches** across all **11,731** intermediate elements, **100.0%
+> classification agreement** across all 10 classes, and **302,978** measured
+> clock cycles per image). Waiting for approval to start Milestone 10 (Quartus
+> Prime synthesis and DE10-Standard implementation). See the
 > [milestone log](docs/development_plan.md).
 
 ---
@@ -84,7 +89,7 @@ fpga_midterm/
 │   ├── tensor_dimensions.md     every tensor shape, MACs, memory sizes (M1)
 │   ├── quantization_spec.md     scales, shifts, rounding, saturation   (M4)
 │   ├── memory_map.md            .mem/.mif layouts and address maps     (M5)
-│   └── rtl_architecture.md      block diagrams, FSM, timing            (M7, planned)
+│   └── rtl_architecture.md      block diagrams, FSM, timing            (M7)
 ├── sw/                          Python package, run as `python -m sw.<module>`
 │   ├── config.py                paths + numeric conventions (single source of truth)
 │   ├── data/                    download, IDX parser, preprocessing, split   (M1)
@@ -92,7 +97,7 @@ fpga_midterm/
 │   ├── train/                   FP32 training, evaluation & confusion matrix (M3)
 │   ├── quant/                   PTQ / QAT, integer parameter extraction      (M4)
 │   ├── export/                  .mem/.mif writers + read-back verification   (M5)
-│   ├── refmodel/                bit-exact integer inference + golden vectors (M6, planned)
+│   ├── refmodel/                bit-exact integer inference + golden vectors (M6)
 │   └── tests/                   automated tests per milestone
 ├── data/
 │   ├── raw/                     downloaded .gz files     (git-ignored)
@@ -100,11 +105,11 @@ fpga_midterm/
 │   └── splits/                  train/val indices        (tracked)
 ├── checkpoints/                 trained models           (M3, git-ignored)
 ├── mem/                         exported .mem / .mif     (M5)
-├── rtl/                         synthesizable Verilog-2001 (M7, planned)
+├── rtl/                         synthesizable Verilog-2001 (M7)
 ├── sim/
-│   ├── tb/                      testbenches              (M8, planned)
-│   ├── do/                      ModelSim .do scripts     (M8, planned)
-│   └── vectors/                 golden input/output vectors (M6, planned)
+│   ├── tb/                      testbenches              (M8)
+│   ├── do/                      ModelSim .do scripts     (M8)
+│   └── vectors/                 golden input/output vectors (M6)
 ├── quartus/                     DE10-Standard project, .qsf, .sdc (M10, planned)
 └── reports/
     ├── dataset/                 M1 statistics and figures
@@ -112,7 +117,8 @@ fpga_midterm/
     ├── training/                M3 logs, curves, confusion matrix & report
     ├── quantization/            M4 INT8 vs FP32 report, scales & plots
     ├── export/                  M5 .mem/.mif verification summary
-    ├── simulation/              M8–M9 (planned)
+    ├── refmodel/                M6 integer reference model & golden vectors report
+    ├── simulation/              M8–M9 ModelSim verification logs & reports
     └── synthesis/               M10 (planned, kept separate from simulation)
 ```
 
@@ -301,12 +307,35 @@ python -m sw.tests.test_m5_export    # 6 automated checks
 
 ## 9. Integer reference model
 
-*Milestone 6, not started.* Planned: NumPy integer-only inference that mirrors
-the RTL arithmetic exactly. It is the golden reference for ModelSim.
+Implementation: [`sw/refmodel/int8_ref_model.py`](sw/refmodel/int8_ref_model.py).
+Generated report: [`reports/refmodel/refmodel_report.md`](reports/refmodel/refmodel_report.md).
+
+- **Strictly integer-only:** Loads weights, biases, and `(M, n)` parameters directly from `mem/*.mem` and executes `INT8` / `INT32` / `INT64` hardware arithmetic with zero floating-point types or PyTorch calls.
+- **Dual verification modes:**
+  1. `infer_single_hw_loop`: explicit nested loops using the 1D hardware memory address equations (`addr = ((oc * C_in + ic) * 3 + ky) * 3 + kx`, `addr = (c * H + y) * W + x`, `addr = (oc << 4) | ic`).
+  2. `infer_batch_int8`: vectorized pure-integer NumPy implementation, verified bit-for-bit identical to `infer_single_hw_loop` and to Milestone 4 across all **10,000** test images (**85.87%** test accuracy, `8,587 / 10,000`).
+- **Golden ModelSim vectors (`sim/vectors/`):** 15 `.mem` files covering every intermediate hardware stage (`img0_conv1_acc.mem`, `img0_conv1_req.mem`, `img0_relu1_out.mem`, `img0_pool1_out.mem`, `img0_conv2_acc.mem`, `img0_conv2_req.mem`, `img0_relu2_out.mem`, `img0_gap_sum.mem`, `img0_gap_out.mem`, `img0_fc_acc.mem`, `img0_fc_scores.mem`, `img0_expected_class.mem`, plus 100-image batch vectors).
+
+Reproduce:
+
+```powershell
+python -m sw.refmodel.generate_vectors   # run integer refmodel + export sim/vectors/*.mem
+python -m sw.tests.test_m6_refmodel      # 5 automated checks
+```
 
 ## 10. RTL architecture
 
-*Milestones 7–9, not started.* Preliminary block diagram (subject to change):
+Full specification, synchronous M10K BRAM timing (`S_PRE -> S_PIPE -> S_MAC -> S_REQUANT`), and cycle-count breakdown: [`docs/rtl_architecture.md`](docs/rtl_architecture.md).
+
+- **Implemented synthesizable Verilog-2001 modules (`rtl/`):**
+  - [`rtl/conv_engine.v`](rtl/conv_engine.v) — Reusable sequential 3×3 VALID 2D convolution + INT32 bias + dyadic requantization engine (time-multiplexed across Conv1 `1×32×32 → 8×30×30` and Conv2 `8×15×15 → 16×13×13`).
+  - [`rtl/relu.v`](rtl/relu.v) — Signed `INT8` ReLU (`max(0, x)`), providing both combinational and 1-cycle registered outputs.
+  - [`rtl/maxpool.v`](rtl/maxpool.v) — 2×2 stride-2 signed `INT8` MaxPool (`8×30×30 → 8×15×15`).
+  - [`rtl/gap.v`](rtl/gap.v) — Global Average Pooling over `13×13 = 169` elements per channel (`16×13×13 → 16`) with exact dyadic multiply-shift rounding (`M_gap = 16780, n_gap = 19`).
+  - [`rtl/fully_connected.v`](rtl/fully_connected.v) — `16 → 10` Fully Connected layer with signed `INT8` MAC, `INT32` bias, and dyadic requantization (`M_fc = 23793, n_fc = 21`).
+  - [`rtl/argmax.v`](rtl/argmax.v) — 10-class signed `INT8` Argmax with lowest-index tie-breaking (`0..9`).
+  - [`rtl/cnn_top.v`](rtl/cnn_top.v) — Top-level accelerator (`clk, rst, start, done, predicted_class [3:0]`), on-chip M10K BRAM buffers, and master FSM controller.
+- **Compilation status:** All 7 modules compiled cleanly in ModelSim Intel FPGA Edition 18.1 (`vlog 10.5b`) with **0 errors and 0 warnings**.
 
 ```mermaid
 flowchart TB
@@ -321,7 +350,32 @@ flowchart TB
 
 ## 11. ModelSim simulation
 
-*Milestones 8–9, not started.*
+Unit verification report: [`reports/simulation/unit_verification_report.md`](reports/simulation/unit_verification_report.md).
+Transcript log: [`reports/simulation/unit_tests_transcript.log`](reports/simulation/unit_tests_transcript.log).
+
+- **Milestone 8 (Individual Module Unit Testbenches — Complete):**
+  - [`sim/tb/tb_conv_engine.v`](sim/tb/tb_conv_engine.v) — Conv1 (`7,200` `INT32` accumulators + `7,200` `INT8` outputs, `86,401` cycles) & Conv2 (`2,704` `INT32` accumulators + `2,704` `INT8` outputs, `202,801` cycles): **0 mismatches**.
+  - [`sim/tb/tb_relu.v`](sim/tb/tb_relu.v) — Exhaustive `[-128..+127]` sweep (`256` combinational + `256` registered) + `7,200` ReLU1 + `2,704` ReLU2 (`10,160` cycles): **0 mismatches**.
+  - [`sim/tb/tb_maxpool.v`](sim/tb/tb_maxpool.v) — Directed `1×4×4` signed negative/zero/positive test (`4` outputs) + Pool1 `8×30×30 → 8×15×15` (`1,800` outputs, `10,801` cycles): **0 mismatches**.
+  - [`sim/tb/tb_gap.v`](sim/tb/tb_gap.v) — `16×13×13 → 16` GAP (`16` `INT32` sums + `16` `INT8` outputs, `2,753` cycles): **0 mismatches**.
+  - [`sim/tb/tb_fully_connected.v`](sim/tb/tb_fully_connected.v) — `16 → 10` FC (`10` `INT32` accumulators + `10` `INT8` scores, `191` cycles): **0 mismatches**.
+  - [`sim/tb/tb_argmax.v`](sim/tb/tb_argmax.v) — Image 0 golden scores + tie-breaking + all-negative scores + class-9 winner (`13` cycles/run): **0 mismatches**.
+- **Milestone 9 (Complete CNN Integration Verification — Complete):**
+  - Integration report: [`reports/simulation/cnn_top_verification_report.md`](reports/simulation/cnn_top_verification_report.md)
+  - Transcript log: [`reports/simulation/cnn_top_transcript.log`](reports/simulation/cnn_top_transcript.log)
+  - Testbench & `.do` script: [`sim/tb/tb_cnn_top.v`](sim/tb/tb_cnn_top.v), [`sim/do/run_tb_cnn_top.do`](sim/do/run_tb_cnn_top.do)
+  - **Phase 1 (Image 0 Layer-by-Layer Buffer Verification):** `11,731 / 11,731` internal BRAM elements matched the Python integer reference model (`7,200` Conv1+ReLU1 + `1,800` Pool1 + `2,704` Conv2+ReLU2 + `16` GAP + `10` FC scores + `1` Argmax class), **0 mismatches, Max Abs Error = 0**.
+  - **Phase 2 (10-Class Multi-Image End-to-End Sweep):** `10 / 10` images (`Vec 0, 10, 20, ..., 90`) matched the Python integer reference model (`100.0%` classification agreement, `0 / 100` FC score mismatches).
+  - **Measured Latency:** **`302,978` clock cycles per image** (`6.060 ms` @ 50 MHz, `3.030 ms` @ 100 MHz).
+
+Reproduce Milestone 8 & 9 ModelSim simulations:
+
+```powershell
+& "C:\intelFPGA_lite\18.1\modelsim_ase\win32aloem\vsim.exe" -c -do sim/do/run_all_unit_tbs.do -l reports/simulation/unit_tests_transcript.log
+& "C:\intelFPGA_lite\18.1\modelsim_ase\win32aloem\vsim.exe" -c -do sim/do/run_tb_cnn_top.do -l reports/simulation/cnn_top_transcript.log
+python -m sw.tests.test_m8_unit_sim
+python -m sw.tests.test_m9_cnn_top_sim
+```
 
 ## 12. Quartus synthesis
 
@@ -339,11 +393,11 @@ flowchart TB
 | 2 | PyTorch model and tensor shape verification (`32×32` input) | ✅ Done (14/14 tests pass) |
 | 3 | FP32 training and evaluation (**86.56%** test acc) | ✅ Done (4/4 tests pass) |
 | 4 | INT8 quantization and evaluation (**85.87%** QAT / **85.02%** PTQ test acc) | ✅ Done (7/7 tests pass) |
-| 5 | `.mem` / `.mif` export (read-back verified) | ✅ Done (6/6 tests pass), awaiting approval |
-| 6 | Python integer reference model | ⏳ Not started |
-| 7 | Individual Verilog modules | ⏳ Not started |
-| 8 | Individual ModelSim testbenches | ⏳ Not started |
-| 9 | Complete CNN integration and verification | ⏳ Not started |
+| 5 | `.mem` / `.mif` export (read-back verified) | ✅ Done (6/6 tests pass) |
+| 6 | Python integer reference model & golden vectors | ✅ Done (5/5 tests pass) |
+| 7 | Individual Verilog-2001 modules (`rtl/*.v`) | ✅ Done (4/4 tests pass; ModelSim `vlog`: 0 errors, 0 warnings) |
+| 8 | Individual ModelSim unit testbenches (`sim/tb/tb_*.v`) | ✅ Done (6/6 testbenches pass, 0 mismatches; 2/2 pytest checks pass) |
+| 9 | Complete CNN integration and verification (`tb_cnn_top.v`) | ✅ Done (11,731/11,731 elements match, 10/10 class agreement, 302,978 cycles; 2/2 pytest checks pass), awaiting approval |
 | 10 | Quartus synthesis and DE10-Standard testing | ⏳ Not started |
 
 Details, decisions and test logs: [docs/development_plan.md](docs/development_plan.md).

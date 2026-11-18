@@ -1,0 +1,65 @@
+# do sim/do/run_tb_cnn_top.do
+# Model Technology ModelSim - Intel FPGA Edition vlog 10.5b Compiler 2016.10 Oct  5 2016
+# Start time: 20:04:44 on Nov 14,2026
+# vlog -work work rtl/relu.v rtl/maxpool.v rtl/gap.v rtl/argmax.v rtl/fully_connected.v rtl/conv_engine.v rtl/cnn_top.v sim/tb/tb_cnn_top.v 
+# -- Compiling module relu
+# -- Compiling module maxpool
+# -- Compiling module gap
+# -- Compiling module argmax
+# -- Compiling module fully_connected
+# -- Compiling module conv_engine
+# -- Compiling module cnn_top
+# -- Compiling module tb_cnn_top
+# 
+# Top level modules:
+# 	tb_cnn_top
+# End time: 20:04:44 on Nov 14,2026, Elapsed time: 0:00:00
+# Errors: 0, Warnings: 0
+# vsim -c -t 1ps work.tb_cnn_top 
+# Start time: 20:04:45 on Nov 14,2026
+# Loading work.tb_cnn_top
+# Loading work.cnn_top
+# Loading work.conv_engine
+# Loading work.relu
+# Loading work.maxpool
+# Loading work.gap
+# Loading work.fully_connected
+# Loading work.argmax
+# =================================================================
+# [TB_CNN_TOP] PHASE 1: Running default test_image.mem (Image 0)
+# =================================================================
+# [TB_CNN_TOP] Image 0 Stage-by-Stage Buffer Verification:
+#   - Conv1+ReLU1 (7200x8b): 0 mismatches (86404 cycles)
+#   - MaxPool1    (1800x8b): 0 mismatches (10803 cycles)
+#   - Conv2+ReLU2 (2704x8b): 0 mismatches (202804 cycles)
+#   - GAP         (  16x8b): 0 mismatches (2755 cycles)
+#   - FC Scores   (  10x8b): 0 mismatches (193 cycles)
+#   - Argmax      (   1x4b): exp=0 got=0 (14 cycles)
+#   - Total Inference Cycles (Image 0): 302978 cycles (6.060 ms @ 50 MHz)
+# =================================================================
+# [TB_CNN_TOP] PHASE 2: 10-Class Multi-Image End-to-End Sweep
+# =================================================================
+# [TB_CNN_TOP] Vec= 0 (GT=0) | Ref_Pred=0 RTL_Pred=0 | Scores=[   7, -28,  -5,  -2, -19, -25,  -2, -36,  -7, -14] | Cycles=302978
+# [TB_CNN_TOP] Vec=10 (GT=1) | Ref_Pred=1 RTL_Pred=1 | Scores=[  -6,  36,   6,   6,   0, -19,  -4, -70, -17, -31] | Cycles=302978
+# [TB_CNN_TOP] Vec=20 (GT=2) | Ref_Pred=2 RTL_Pred=2 | Scores=[   0, -17,   9,  -7,  -3, -46,   3, -63,  -9, -38] | Cycles=302978
+# [TB_CNN_TOP] Vec=30 (GT=3) | Ref_Pred=3 RTL_Pred=3 | Scores=[  -1,  -8, -17,   7,  -6,  -8,  -4, -28, -12, -11] | Cycles=302978
+# [TB_CNN_TOP] Vec=40 (GT=4) | Ref_Pred=4 RTL_Pred=4 | Scores=[  -6,  -4,   5,  -5,   7, -29,   2, -49, -10, -37] | Cycles=302978
+# [TB_CNN_TOP] Vec=50 (GT=5) | Ref_Pred=5 RTL_Pred=5 | Scores=[ -10, -78, -31, -13, -23,  16, -19,   7,  -2,  -1] | Cycles=302978
+# [TB_CNN_TOP] Vec=60 (GT=6) | Ref_Pred=6 RTL_Pred=6 | Scores=[   1, -22,  -5,  -3,   0, -23,   4, -31, -12, -17] | Cycles=302978
+# [TB_CNN_TOP] Vec=70 (GT=7) | Ref_Pred=7 RTL_Pred=7 | Scores=[ -16,-122, -36, -41, -42,  25, -35,  34,  -4,  20] | Cycles=302978
+# [TB_CNN_TOP] Vec=80 (GT=8) | Ref_Pred=8 RTL_Pred=8 | Scores=[  -5, -85, -16, -17, -32, -18,  -8, -21,  15,  -2] | Cycles=302978
+# [TB_CNN_TOP] Vec=90 (GT=9) | Ref_Pred=9 RTL_Pred=9 | Scores=[ -13, -81, -29, -26, -27,  14, -24,  16,  -3,  22] | Cycles=302978
+# =================================================================
+# [TB_CNN_TOP] Image 0 Intermediate Checks : 11731 / 11731 matched
+# [TB_CNN_TOP] 10-Class Batch Tested       : 10 images (100 FC scores checked)
+# [TB_CNN_TOP] RTL vs Python Ref Agreement : 10 / 10 (100.0%)
+# [TB_CNN_TOP] Score Mismatches            : 0 | Max Abs Error: 0
+# [TB_CNN_TOP] Measured Cycles per Image   : 302978 cycles
+# [TB_CNN_TOP] STATUS: PASS
+# =================================================================
+# ** Note: $finish    : sim/tb/tb_cnn_top.v(294)
+#    Time: 66860631 ns  Iteration: 0  Instance: /tb_cnn_top
+# Break in Module tb_cnn_top at sim/tb/tb_cnn_top.v line 294
+# Stopped at sim/tb/tb_cnn_top.v line 294
+# End time: 20:05:04 on Nov 14,2026, Elapsed time: 0:00:19
+# Errors: 0, Warnings: 0
