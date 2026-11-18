@@ -39,6 +39,12 @@ python -m sw.gui_app
 C:\intelFPGA_lite\18.1\quartus\bin64\quartus_pgm.exe -c "DE-SoC [USB-1]" -m JTAG -o "p;quartus\output_files\de10_standard.sof@2"
 ```
 
+---
+
+## Project 2 (Method 2): Parallel 4-Layer INT8 CNN on CIFAR-10 (`32×32×3` RGB) + Cyclone V ARM HPS
+
+**Project 2** upgrades the baseline into a high-throughput **4-layer parallel INT8 CNN accelerator (`61,162` parameters)** for **CIFAR-10 (`32×32×3` natural RGB images)** using a **2-line shift-register line buffer + `4×9 = 36` parallel MAC array (`Po = 4`)**, **BatchNorm folding + Per-Channel INT8 QAT**, and **0-DSP `8×8` GAP (`>> 6`)**. It also integrates the **Cyclone V Dual-Core ARM Cortex-A9 HPS** via the Lightweight AXI Bridge (`0xFF200000`) to drive a **24-bit Color RGB VGA HUD** and a **synchronized `128×64` HPS Graphic LCD** in real time (`202,538` cycles = `4.051 ms` @ `50 MHz` = **`246.9 FPS`**).
+
 > **Project 2 / Method 2 Status:** Complete & Deployed on DE10-Standard! (`83.54%` INT8 on CIFAR-10, **`100/100`** ModelSim bit-exact parity, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, full ARM HPS `0xFF200000` + 24-bit RGB VGA + `128×64` HPS LCD). See **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md)**.
 
 ### Project 2 (Method 2) Quick Hyperlinks (`PROJECT JUDUL  2/method2/`)
