@@ -41,6 +41,16 @@ C:\intelFPGA_lite\18.1\quartus\bin64\quartus_pgm.exe -c "DE-SoC [USB-1]" -m JTAG
 
 > **Project 2 / Method 2 Status:** Complete & Deployed on DE10-Standard! (`83.54%` INT8 on CIFAR-10, **`100/100`** ModelSim bit-exact parity, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, full ARM HPS `0xFF200000` + 24-bit RGB VGA + `128×64` HPS LCD). See **[Section 15](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`PROJECT%20JUDUL%20%202/method2/README.md`](PROJECT%20JUDUL%20%202/method2/README.md)**.
 
+### Project 2 (Method 2) Quick Hyperlinks (`PROJECT JUDUL  2/method2/`)
+
+| Category | Direct GitHub Hyperlinks |
+|---|---|
+| **Quartus & Qsys (`.qsf` / `.qpf` / `.qsys`)** | [`quartus_m2/de10_standard_m2.qsf`](PROJECT%20JUDUL%20%202/method2/quartus_m2/de10_standard_m2.qsf) · [`quartus_m2/de10_standard_m2.qpf`](PROJECT%20JUDUL%20%202/method2/quartus_m2/de10_standard_m2.qpf) · [`build_hps_qsys.tcl`](PROJECT%20JUDUL%20%202/method2/quartus_m2/build_hps_qsys.tcl) · [`hps_cnn_qsys.qsys`](PROJECT%20JUDUL%20%202/method2/quartus_m2/hps_cnn_qsys.qsys) |
+| **Memory Files (`.mem`)** | [`mem_m2/`](PROJECT%20JUDUL%20%202/method2/mem_m2/) · [`w_bank0.mem`](PROJECT%20JUDUL%20%202/method2/mem_m2/w_bank0.mem) · [`q_bank0.mem`](PROJECT%20JUDUL%20%202/method2/mem_m2/q_bank0.mem) · [`de10_images_10_m2.mem`](PROJECT%20JUDUL%20%202/method2/mem_m2/de10_images_10_m2.mem) |
+| **Python CNN, QAT & GUI (`sw_m2/`)** | [`sw_m2/gui_app_m2.py`](PROJECT%20JUDUL%20%202/method2/sw_m2/gui_app_m2.py) · [`sw_m2/jtag_bridge_m2.py`](PROJECT%20JUDUL%20%202/method2/sw_m2/jtag_bridge_m2.py) · [`sw_m2/model.py`](PROJECT%20JUDUL%20%202/method2/sw_m2/model.py) · [`sw_m2/train_qat.py`](PROJECT%20JUDUL%20%202/method2/sw_m2/train_qat.py) · [`sw_m2/export_mem.py`](PROJECT%20JUDUL%20%202/method2/sw_m2/export_mem.py) |
+| **Verilog RTL & ModelSim (`rtl_m2/`, `sim_m2/`)** | [`rtl_m2/conv_engine_m2.v`](PROJECT%20JUDUL%20%202/method2/rtl_m2/conv_engine_m2.v) · [`rtl_m2/cnn_top_m2.v`](PROJECT%20JUDUL%20%202/method2/rtl_m2/cnn_top_m2.v) · [`rtl_m2/de10_standard_top_m2.v`](PROJECT%20JUDUL%20%202/method2/rtl_m2/de10_standard_top_m2.v) · [`sim_m2/tb_cnn_top_m2.v`](PROJECT%20JUDUL%20%202/method2/sim_m2/tb_cnn_top_m2.v) |
+| **HPS ARM C & Reports (`hps_m2/`, `reports_m2/`)** | [`hps_m2/main_cifar10_vga_bridge.c`](PROJECT%20JUDUL%20%202/method2/hps_m2/main_cifar10_vga_bridge.c) · [`reports_m2/method1_vs_method2_comparison.md`](PROJECT%20JUDUL%20%202/method2/reports_m2/method1_vs_method2_comparison.md) · [`reports_m2/training_quant_summary.json`](PROJECT%20JUDUL%20%202/method2/reports_m2/training_quant_summary.json) |
+
 ---
 
 ## Contents
