@@ -7,9 +7,11 @@ __pycache__/
 # Data (regenerable). data/splits/ IS tracked for reproducibility.
 data/raw/
 data/processed/
+data/processed_m2/
 
 # Training artifacts
 checkpoints/
+checkpoints_m2/
 
 # ModelSim / Questa / DESim
 work/
@@ -28,5 +30,10 @@ quartus/db/
 quartus/incremental_db/
 quartus/output_files/
 quartus/simulation/
+quartus_m2/db/
+quartus_m2/incremental_db/
+quartus_m2/output_files/
+quartus_m2/simulation/
+quartus_m2/hps_cnn_qsys/
 *.qws
 *.bak

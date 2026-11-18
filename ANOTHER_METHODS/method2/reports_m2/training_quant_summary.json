@@ -1,0 +1,7 @@
+{
+  "float_bn_test_acc": 83.49,
+  "qat_fakequant_test_acc": 83.61,
+  "int8_dyadic_test_acc": 83.54,
+  "hw_100_acc": 84.0,
+  "total_params": 61162
+}

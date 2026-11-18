@@ -1,0 +1,25 @@
+{
+  "dataset": "CIFAR-10",
+  "shape": [
+    3,
+    32,
+    32
+  ],
+  "train_count": 45000,
+  "val_count": 5000,
+  "test_count": 10000,
+  "hw_test_vectors": 100,
+  "input_quant": "int8(pixel - 128) in [-128, 127], scale=1/128",
+  "class_names": [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck"
+  ]
+}
