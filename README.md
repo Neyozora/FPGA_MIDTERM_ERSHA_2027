@@ -27,6 +27,10 @@ Long-term target: LSI Design Contest 2027.
 > Prime synthesis and DE10-Standard implementation). See the
 > [milestone log](docs/development_plan.md).
 
+> **Project 2 / Method 2 Upgrade (Complete & Deployed on DE10-Standard!):**
+> Upgraded to a **4-layer parallel INT8 CNN (`36` MACs/cycle, `61,162` params)** on **CIFAR-10 (`32×32×3` RGB)** achieving **`83.54%` INT8 test accuracy**, **`100/100` ModelSim bit-exact parity**, **`202,538` cycles (`4.051 ms` @ `50 MHz` = `246.9 FPS`)**, and full **Cyclone V ARM HPS (`0xFF200000`) + 24-bit RGB VGA HUD + `128×64` HPS Graphic LCD** integration.
+> See **[Section 15: Method 2 Upgrade](#15-method-2-upgrade--cifar-10-rgb-4-layer-parallel-cnn--hps-lcdvga)** and **[`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md)**.
+
 ---
 
 ## Contents
@@ -401,3 +405,31 @@ python -m sw.tests.test_m9_cnn_top_sim
 | 10 | Quartus synthesis and DE10-Standard testing | ⏳ Not started |
 
 Details, decisions and test logs: [docs/development_plan.md](docs/development_plan.md).
+
+
+---
+
+## 15. Method 2 Upgrade — CIFAR-10 RGB 4-Layer Parallel CNN + HPS LCD/VGA
+
+> All Method 1 files above remain **100% untouched**. Method 2 is packaged cleanly alongside Method 1 (and archived in [`ANOTHER_METHODS/method2/`](ANOTHER_METHODS/method2/README.md)).
+
+### Method 1 vs. Method 2 Summary
+
+| Metric | Method 1 (Baseline) | Method 2 (Parallel + HPS) |
+|---|---|---|
+| **Dataset & Input** | Fashion-MNIST (`32×32×1` Grayscale) | **CIFAR-10 (`32×32×3` Native RGB)** |
+| **CNN Architecture** | 2-Layer (`1→8→Pool→8→16→GAP→FC`) | **4-Layer (`3→16→Pool→32→Pool→64→64→GAP→FC`)** |
+| **Total Parameters** | `1,418` | **`61,162` (`43.1×`)** |
+| **Quantization** | Per-Layer INT8 QAT | **BatchNorm Folding + Per-Channel INT8 QAT** |
+| **INT8 Test Accuracy** | `85.87%` *(Fashion-MNIST)* | **`83.54%`** *(CIFAR-10)* / `84.00%` *(100 HW vectors)* |
+| **Conv Engine** | Sequential 1-MAC/cycle | **2-Line Shift-Register Line Buffer + `4×9 = 36` Parallel MACs (`Po=4`)** |
+| **Latency / FPS @ 50 MHz** | `302,978` cycles (`6.060 ms` / `165.0 FPS`) | **`202,538` cycles (`4.051 ms` / `246.9 FPS`)** |
+| **ModelSim 18.1 Parity** | `100 / 100` preds, `1,000 / 1,000` scores | **`100 / 100` preds, `1,000 / 1,000` scores** |
+| **Quartus Resources (`5CSXFC6D6F31C6`)** | `804` ALMs (`2%`), `31` M10Ks (`6%`), `22` DSPs | `8,149` ALMs (`19%` incl. HPS Qsys), `103` M10Ks (`19%`), `52` DSPs (`46%`) |
+| **Hardware Displays & Bridge** | VGA Grayscale + PS/2 + JTAG | **VGA 24-bit RGB HUD + HPS `128×64` LCD + Lightweight AXI (`0xFF200000`) + JTAG** |
+
+### Quick Run (Method 2)
+- **GUI (ModelSim + Live FPGA JTAG):** `python -m sw_m2.gui_app_m2`
+- **Program FPGA Bitstream:** `C:\intelFPGA_lite\18.1\quartus\bin64\quartus_pgm.exe -c "DE-SoC [USB-1]" -m JTAG -o "p;quartus_m2\output_files\de10_standard_m2.sof@2"`
+- **HPS LCD + VGA Bridge (on DE10-Standard Linux):** `cd /home/xuser/hps_cifar10_lcd && ./hps_vga_bridge`
+- **Full Documentation:** [`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md), [`method2_complete_report.pdf`](method2_complete_report.pdf), [`laporan_uts_fpga_ersha.pdf`](laporan_uts_fpga_ersha.pdf), [`lecturer_qa_100.pdf`](lecturer_qa_100.pdf).
