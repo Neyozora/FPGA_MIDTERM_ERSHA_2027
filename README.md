@@ -439,12 +439,16 @@ Details, decisions and test logs: [docs/development_plan.md](docs/development_pl
 | **HW Test Vectors (`100`)** | – | – | **`84.00%`** | – |
 
 ![CIFAR-10 100 Hardware Test Vectors](ANOTHER_METHODS/method2/reports_m2/hw_vectors_100_grid_m2.png)
+*Figure 15.1 — 10×10 grid of all 100 balanced CIFAR-10 hardware test vectors (`32×32×3` RGB, first 10 test images per class from `airplane` to `truck`), quantized with zero-gate MSB-flip (`q_in = pixel - 128 ∈ [-128, 127]`).*
 
 ![Method 2 INT8 Confusion Matrix](ANOTHER_METHODS/method2/reports_m2/int8_confusion_matrix_m2.png)
+*Figure 15.2 — Pure INT8 Confusion Matrix across all 10,000 official CIFAR-10 test images (**83.54%** accuracy). Highest per-class accuracies are `automobile` (`934/1,000` = `93.4%`), `ship` (`914/1,000` = `91.4%`), `truck` (`888/1,000` = `88.8%`), and `frog` (`881/1,000` = `88.1%`), while visually similar `cat` (`684/1,000`) and `dog` (`740/1,000`) account for most cross-confusions.*
 
 ![Method 2 Weight Distributions](ANOTHER_METHODS/method2/reports_m2/weight_distributions_m2.png)
+*Figure 15.3 — Weight distribution histograms comparing **FP32 (BatchNorm-Folded)** (blue) vs. **Dequantized Per-Channel INT8** (orange) across `CONV1`, `CONV2`, `CONV3`, `CONV4`, and `FC`. The near-complete overlap confirms minimal quantization distortion (`+0.05%` test delta vs. FP32).*
 
 ![Method 1 vs Method 2 Performance](ANOTHER_METHODS/method2/reports_m2/method1_vs_method2_chart.png)
+*Figure 15.4 — Hardware performance comparison at `50 MHz`: Method 2 cuts latency from `302,978` cycles (`165.0 FPS`) down to **`202,538` cycles (`246.9 FPS`)** — **1.50× faster** despite running a **43.1× larger** 4-layer CNN (`61,162` vs. `1,418` parameters) via the 2-line buffer and `4×9 = 36` parallel MAC array.*
 
 ### 15.3 Parallel Hardware Architecture (`rtl_m2/`)
 
