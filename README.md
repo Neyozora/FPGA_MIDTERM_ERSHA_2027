@@ -401,25 +401,71 @@ Details, decisions and test logs: [docs/development_plan.md](docs/development_pl
 
 ## 15. Method 2 Upgrade — CIFAR-10 RGB 4-Layer Parallel CNN + HPS LCD/VGA
 
-> All Method 1 files above remain **100% untouched**. Method 2 is packaged cleanly alongside Method 1 (and archived in [`ANOTHER_METHODS/method2/`](ANOTHER_METHODS/method2/README.md)).
+> All Method 1 files and sections (Sections 1–14) remain **100% untouched**. Method 2 is implemented in parallel (`sw_m2/`, `rtl_m2/`, `sim_m2/`, `mem_m2/`, `hps_m2/`, `quartus_m2/`, `reports_m2/`) and archived in [`ANOTHER_METHODS/method2/`](ANOTHER_METHODS/method2/README.md).
 
-### Method 1 vs. Method 2 Summary
+### 15.1 Method 1 vs. Method 2 Comparison
 
 | Metric | Method 1 (Baseline) | Method 2 (Parallel + HPS) |
 |---|---|---|
 | **Dataset & Input** | Fashion-MNIST (`32×32×1` Grayscale) | **CIFAR-10 (`32×32×3` Native RGB)** |
+| **Input Quantization** | `q_in = pixel >> 1 ∈ [0, 127]` (`0` gates) | **`q_in = pixel - 128 ∈ [-128, 127]` (MSB flip, `0` gates)** |
 | **CNN Architecture** | 2-Layer (`1→8→Pool→8→16→GAP→FC`) | **4-Layer (`3→16→Pool→32→Pool→64→64→GAP→FC`)** |
 | **Total Parameters** | `1,418` | **`61,162` (`43.1×`)** |
-| **Quantization** | Per-Layer INT8 QAT | **BatchNorm Folding + Per-Channel INT8 QAT** |
+| **Quantization** | Per-Layer Symmetric INT8 QAT | **BatchNorm Folding + Per-Channel Symmetric INT8 QAT** |
 | **INT8 Test Accuracy** | `85.87%` *(Fashion-MNIST)* | **`83.54%`** *(CIFAR-10)* / `84.00%` *(100 HW vectors)* |
 | **Conv Engine** | Sequential 1-MAC/cycle | **2-Line Shift-Register Line Buffer + `4×9 = 36` Parallel MACs (`Po=4`)** |
 | **Latency / FPS @ 50 MHz** | `302,978` cycles (`6.060 ms` / `165.0 FPS`) | **`202,538` cycles (`4.051 ms` / `246.9 FPS`)** |
 | **ModelSim 18.1 Parity** | `100 / 100` preds, `1,000 / 1,000` scores | **`100 / 100` preds, `1,000 / 1,000` scores** |
-| **Quartus Resources (`5CSXFC6D6F31C6`)** | `804` ALMs (`2%`), `31` M10Ks (`6%`), `22` DSPs | `8,149` ALMs (`19%` incl. HPS Qsys), `103` M10Ks (`19%`), `52` DSPs (`46%`) |
+| **Quartus Resources (`5CSXFC6D6F31C6`)** | `804` ALMs (`2%`), `31` M10Ks (`6%`), `22` DSPs | `3,815` ALMs (`9%` FPGA) / `8,149` ALMs (`19%` incl. HPS), `103` M10Ks (`19%`), `52` DSPs (`46%`) |
 | **Hardware Displays & Bridge** | VGA Grayscale + PS/2 + JTAG | **VGA 24-bit RGB HUD + HPS `128×64` LCD + Lightweight AXI (`0xFF200000`) + JTAG** |
 
-### Quick Run (Method 2)
-- **GUI (ModelSim + Live FPGA JTAG):** `python -m sw_m2.gui_app_m2`
-- **Program FPGA Bitstream:** `C:\intelFPGA_lite\18.1\quartus\bin64\quartus_pgm.exe -c "DE-SoC [USB-1]" -m JTAG -o "p;quartus_m2\output_files\de10_standard_m2.sof@2"`
-- **HPS LCD + VGA Bridge (on DE10-Standard Linux):** `cd /home/xuser/hps_cifar10_lcd && ./hps_vga_bridge`
-- **Full Documentation:** [`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md), [`method2_complete_report.pdf`](method2_complete_report.pdf), [`laporan_uts_fpga_ersha.pdf`](laporan_uts_fpga_ersha.pdf), [`lecturer_qa_100.pdf`](lecturer_qa_100.pdf).
+### 15.2 Dataset, 4-Layer CNN & Quantization Results
+
+- **CIFAR-10 (`32×32×3` RGB):** Deterministic `45,000` train / `5,000` val (`SEED=42`) / `10,000` test split + `100` balanced hardware test vectors (`10` per class: `airplane`, `automobile`, `bird`, `cat`, `deer`, `dog`, `frog`, `horse`, `ship`, `truck`).
+- **Two-Stage Training (`sw_m2/train_qat.py`):**
+  1. **Float32 + BatchNorm2d (80 epochs):** `SGD(lr=0.05, momentum=0.9)` + `CosineAnnealingLR` + `RandomCrop(32, padding=4)` + `RandomHorizontalFlip()`.
+  2. **BatchNorm Folding + Per-Channel INT8 QAT (25 epochs):** Folds `gamma, beta, mean, var` into Conv weights/biases, fine-tunes with `Adam(lr=2e-4)`, and exports per-channel dyadic `(mult, shift)` parameters.
+
+| Split | FP32 (Float+BN) | QAT Fake-Quant | Pure INT8 (FPGA-Exact) | Delta vs. FP32 |
+|---|---|---|---|---|
+| **Train (`45,000`)** | – | – | **`87.93%`** | – |
+| **Validation (`5,000`)** | `84.18%` | `84.34%` | **`84.02%`** | `-0.16%` |
+| **Test (`10,000`)** | `83.49%` | `83.61%` | **`83.54%`** | **`+0.05%`** |
+| **HW Test Vectors (`100`)** | – | – | **`84.00%`** | – |
+
+### 15.3 Parallel Hardware Architecture (`rtl_m2/`)
+
+- **2-Line Shift-Register Line Buffer (`conv_engine_m2.v`):** Streams pixels in raster order through two `32`-deep line buffers (`lb0`, `lb1`), exposing all `9` pixels of the `3×3` window simultaneously every cycle with automatic `PAD=1` zero-padding.
+- **`4×9 = 36` Parallel MAC Array ($P_o = 4$):** Reads `4 × 72`-bit packed `3×3` kernels (`w_bank0..3`) and `4 × 53`-bit `{shift, mult, bias}` (`q_bank0..3`) in 1 cycle, accumulates into 4-bank M10K partial-sum RAMs (`psum_ram0..3`), and applies per-channel dyadic requantization + ReLU `[0, 127]`.
+- **4-Bank Ping-Pong BRAMs & `0`-DSP GAP:** `fmap_a0..3` (`16` M10Ks) and `fmap_b0..3` (`8` M10Ks) alternate across `Conv1 → Pool1 → Conv2 → Pool2 → Conv3 → Conv4`, followed by `0`-DSP `8×8` GAP (`(sum + 32) >>> 6`) and `FC (64→10) + Argmax`.
+
+### 15.4 Cyclone V HPS (`0xFF200000`), VGA RGB HUD & `128×64` HPS LCD
+
+- **Qsys Lightweight AXI Bridge (`hps_cnn_qsys`):** Maps `hps_0.h2f_lw_axi_master` (`0xFF200000`) to `de10_standard_top_m2.v` (`0x00` CTRL, `0x04` STATUS, `0x08` PIX_WR, `0x0C` CYCLES, `0x10..0x34` SCORE0..9, `0x38` BOARD_IO).
+- **Synchronized Board Modes (`hps_m2/main_cifar10_vga_bridge.c`):**
+  - **`SW[8] = 0` (Switch-Follow Mode):** Flipping `SW[3:0]` (`0..9`) or pressing `KEY[1]`/`KEY[2]` updates **both** the `640×480` 24-bit RGB VGA HUD (`vga_cnn_hud_m2.v`) and the `128×64` HPS Graphic LCD (`SW=X -> P=Y`, `4.05ms 247FPS`).
+  - **`SW[8] = 1` (100-Image Slideshow Mode):** ARM Cortex-A9 streams all `100` CIFAR-10 images (`hw_images_100.bin`) over `0xFF200000` to the FPGA, VGA monitor, and HPS LCD (`HPS->VGA #XX`).
+  - **`SW[9] = 1`:** Displays exact hardware clock cycles (`03172A` hex = `202,538`) on `HEX5..HEX0`.
+
+### 15.5 Verification, Synthesis & Quick Run (Method 2)
+
+- **ModelSim 18.1 (`sim_m2/tb_cnn_top_m2.v`):** `100 / 100` prediction parity, `1,000 / 1,000` INT8 score parity, `202,538` cycles/image (`4.051 ms` @ `50 MHz` = `246.9 FPS`).
+- **Quartus Prime 18.1 (`quartus_m2/de10_standard_m2.qpf`):** `8,149 / 41,910` ALMs (`19%` incl. HPS Qsys), `103 / 553` M10Ks (`19%`), `52 / 112` DSPs (`46%`), `+3.634 ns` `CLOCK_50` setup slack (`0` timing violations).
+
+```powershell
+# 1. Python Pipeline & ModelSim + FPGA JTAG GUI
+python -m sw_m2.preprocess
+python -u -m sw_m2.train_qat
+python -m sw_m2.export_mem
+python -m sw_m2.gui_app_m2
+
+# 2. Program DE10-Standard FPGA Bitstream
+C:\intelFPGA_lite\18.1\quartus\bin64\quartus_pgm.exe -c "DE-SoC [USB-1]" -m JTAG -o "p;quartus_m2\output_files\de10_standard_m2.sof@2"
+```
+On DE10-Standard Angstrom Linux (`COM7`, `115200` baud):
+```bash
+cd /home/xuser/hps_cifar10_lcd && ./hps_vga_bridge
+```
+
+- **Full Documentation & Reports:** [`ANOTHER_METHODS/method2/README.md`](ANOTHER_METHODS/method2/README.md), [`method2_complete_report.pdf`](ANOTHER_METHODS/method2/method2_complete_report.pdf), [`laporan_uts_fpga_ersha.pdf`](ANOTHER_METHODS/method2/laporan_uts_fpga_ersha.pdf), [`lecturer_qa_100.pdf`](ANOTHER_METHODS/method2/lecturer_qa_100.pdf).
+
